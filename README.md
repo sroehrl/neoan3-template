@@ -1,6 +1,10 @@
 # neoan3-apps/template
 neoan3 minimal template engine
 
+[![Test Coverage](https://api.codeclimate.com/v1/badges/76b09924300375c4d79a/test_coverage)](https://codeclimate.com/github/sroehrl/neoan3-template/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/76b09924300375c4d79a/maintainability)](https://codeclimate.com/github/sroehrl/neoan3-template/maintainability)
+[![Build Status](https://travis-ci.org/sroehrl/neoan3-template.svg?branch=master)](https://travis-ci.org/sroehrl/neoan3-template)
+
 ## Templating
 **neoan3-template** is not a full blown template engine, but rather what a template engine should be: 
 With modern JavaScript solutions creating a dynamic approach, neoan3-template focuses on the necessities of static rendering. 
