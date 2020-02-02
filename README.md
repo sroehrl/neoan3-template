@@ -44,7 +44,7 @@ _output_
 Replaces array-keys indicated by double curly braces with the appropriate value
 #### embraceFromFile($fileLocation, $substitutionArray)
 Reads content of a file and executes the embrace function.
->When using Neoan3, the location starts at the root of your application. As a stand-alone, either define "path" accordingly or use the fallback to the root of the server.
+>When using Neoan3, the location starts at the root of your application. As a stand-alone, either define "path" accordingly (as a global constant) or use the fallback to the root of the server.
 
 #### hardEmbrace($string, $substitutionArray)
 When working with front-end technology, the similarity of markup can either be wanted (e.g. Vue fills content PHP could not), or ambiguous.
