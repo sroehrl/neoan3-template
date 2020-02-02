@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test</title>
+</head>
+<body>
+<div>
+    <h2>nested if</h2>
+    <p n-for="deeps as deep">
+        <span n-if="deep.number > 1">exists</span>
+        <span n-if="deep.number < 1">not</span>
+    </p>
+</div>
+</body>
+</html>
