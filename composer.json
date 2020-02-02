@@ -1,5 +1,22 @@
 {
+    "name": "neoan3-apps/template",
+    "description": "neoan3 minimal template engine",
+    "version": "1.0.0",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Neoan3\\Apps\\": "./"
+        }
+
+    },
+    "require": {
+        "ext-openssl": "*",
+        "ext-mbstring": "*",
+        "ext-json": "*",
+        "ext-dom": "*"
+    },
     "require-dev": {
-        "phpunit/phpunit": "^8.5"
+        "phpunit/phpunit": "^8.3"
     }
 }
+
