@@ -10,16 +10,27 @@ class Template
      * @param $content
      * @param $array
      *
+     * @param string $opening
+     * @param string $closing
      * @return mixed
      */
-    static function embrace($content, $array)
+    static function embrace($content, $array, $opening = '{{', $closing = '}}')
     {
         $flatArray = self::flattenArray($array);
         $templateFunctions = ['nFor', 'nIf'];
         foreach ($templateFunctions as $function) {
             $content = self::enforceEmbraceInAttributes(TemplateFunctions::$function($content, $array));
         }
-        return str_replace(array_map('self::curlyBraces', array_keys($flatArray)), array_values($flatArray), $content);
+        $saveOpening = preg_quote($opening);
+        $saveClosing = preg_quote($closing);
+        foreach ($flatArray as $flatKey => $value){
+            if(is_callable($value)){
+                $content = TemplateFunctions::executeClosure($content,$flatKey,$value,$flatArray, [$opening,$closing]);
+            } else {
+                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
+            }
+        }
+        return $content;
     }
 
     /**
@@ -30,7 +41,7 @@ class Template
      */
     static function hardEmbrace($content, $array)
     {
-        return str_replace(array_map('self::hardBraces', array_keys($array)), array_values($array), $content);
+        return self::embrace($content, $array, '[[', ']]');
     }
 
     /**
@@ -48,34 +59,17 @@ class Template
      * @param $location
      * @param $array
      *
+     * @param string $opening
+     * @param string $closing
      * @return mixed
      */
-    static function embraceFromFile($location, $array)
+    static function embraceFromFile($location, $array, $opening = '{{', $closing = '}}')
     {
         $appRoot = defined('path') ? path : '';
         $file = file_get_contents($appRoot . '/' . $location);
-        return self::embrace($file, $array);
+        return self::embrace($file, $array, $opening, $closing);
     }
 
-    /**
-     * @param $input
-     *
-     * @return string
-     */
-    private static function curlyBraces($input)
-    {
-        return '{{' . $input . '}}';
-    }
-
-    /**
-     * @param $input
-     *
-     * @return string
-     */
-    private static function hardBraces($input)
-    {
-        return '[[' . $input . ']]';
-    }
 
     /**
      * @param $input

@@ -6,6 +6,12 @@ namespace Neoan3\Apps;
 
 class TemplateFunctions
 {
+    static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = []){
+        $pattern = "/" . (empty($pure) ? "" : addslashes($pure[0]) . "\s*") . "$callBackName\(([a-z0-9,\s]+)\)" . (empty($pure) ? "" : "\s*" . addslashes($pure[1])) . "/i";
+        return preg_replace_callback($pattern, function($hit) use ($closure, $valueArray){
+            return $closure($valueArray[$hit[1]]);
+        },$content);
+    }
     private static function extractAttribute(\DOMElement $hit, $attribute)
     {
         // extract attribute
@@ -81,6 +87,9 @@ class TemplateFunctions
                         break;
                     case 'string':
                         $expression = str_replace($key, '"' . $flatArray[$key] . '"', $expression);
+                        break;
+                    case 'object':
+                        $expression = self::executeClosure($expression,$key,$flatArray[$key],$flatArray);
                         break;
                     default:
                         $expression = str_replace($key, $flatArray[$key], $expression);

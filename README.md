@@ -63,6 +63,10 @@ $html = '
 Output:
 `<h1>hallo</h1>`
 
+_NOTE:_ tEmbrace assumes that dynamically calling translations is cost intensive. 
+Unlike "embrace", "hardEmbrace" and "embraceFromFile" it does not 
+support any functionality other than substitution.  
+
 ## loop (n-for)
 
 The n-for loop evaluates as PHP's foreach and uses the same syntax (excluding the $-sign).
@@ -112,4 +116,61 @@ Output:
 <div></div>
 <div><span>two<span></div>
 
+```
+
+## Custom functions
+
+Unlike other template engines, **neoan3-apps/template** does not come with expensive additional functionality.
+It is our believe that most of what other template engines offer should not be included in a template engine.
+However, you can pass in custom closures to achieve custom transformation or similar.
+
+Example:
+
+```PHP
+$html = '<p n-for="items as item">{{toUpper(item)}}</p>';
+
+$passIn = [
+    'items'=>['chair', 'table'],
+    'toUpper' => function($input){ return strtoupper($input);}
+];
+
+echo \Neoan3\Apps\Template::embrace($html, $passIn);
+```
+
+Output:
+
+```html
+<p>CHAIR</p>
+<p>TABLE</p>
+
+```
+
+## Custom delimiter
+
+There is a reason why curly braces are used: You can leverage the fact that some values are only potentially filled by the backend and 
+addressed in the front-end if the value does not exist in your data (yet).
+However, there are also cases where you want to specifically avoid having your front-end 
+framework picking up unfilled variables or you have special parsing needs to work with various files.
+Therefore, you can use custom identifiers by providing your desired markup to **embrace** or **embraceFromFile**.
+
+Example:
+
+```php
+$html = '
+<!-- name -->
+<p>Here is content</p>
+';
+
+$substitutions = [
+    'name' => 'neoan3'
+];
+
+echo \Neoan3\Apps\Template::embrace($html, $substitutions,'<!--','-->');
+```
+
+Output:
+
+```html
+<!-- neoan3 -->
+<p>Here is content</p>
 ```
