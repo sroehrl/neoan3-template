@@ -10,16 +10,28 @@ class Template
      * @param $content
      * @param $array
      *
+     * @param string $opening
+     * @param string $closing
      * @return mixed
      */
-    static function embrace($content, $array)
+    static function embrace($content, $array, $opening = '{{', $closing = '}}')
     {
         $flatArray = self::flattenArray($array);
         $templateFunctions = ['nFor', 'nIf'];
         foreach ($templateFunctions as $function) {
             $content = self::enforceEmbraceInAttributes(TemplateFunctions::$function($content, $array));
         }
-        return str_replace(array_map('self::curlyBraces', array_keys($flatArray)), array_values($flatArray), $content);
+
+        foreach ($flatArray as $flatKey => $value){
+            if(is_callable($value)){
+                $content = preg_replace_callback("/\{\{$flatKey\(([a-z0-9,\s]+)\)\}\}/i", function($hit) use ($value, $flatArray){
+                    return $value($flatArray[$hit[1]]);
+                },$content);
+            } else {
+                $content = str_replace($opening . $flatKey . $closing, $value, $content);
+            }
+        }
+        return $content;
     }
 
     /**
@@ -30,7 +42,7 @@ class Template
      */
     static function hardEmbrace($content, $array)
     {
-        return str_replace(array_map('self::hardBraces', array_keys($array)), array_values($array), $content);
+        return self::embrace($content, $array, '[[', ']]');
     }
 
     /**
