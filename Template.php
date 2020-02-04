@@ -21,12 +21,13 @@ class Template
         foreach ($templateFunctions as $function) {
             $content = self::enforceEmbraceInAttributes(TemplateFunctions::$function($content, $array));
         }
-
+        $saveOpening = preg_quote($opening);
+        $saveClosing = preg_quote($closing);
         foreach ($flatArray as $flatKey => $value){
             if(is_callable($value)){
-                $content = TemplateFunctions::executeClosure($content,$flatKey,$value,$flatArray, false);
+                $content = TemplateFunctions::executeClosure($content,$flatKey,$value,$flatArray, [$opening,$closing]);
             } else {
-                $content = str_replace($opening . $flatKey . $closing, $value, $content);
+                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
             }
         }
         return $content;
@@ -58,13 +59,15 @@ class Template
      * @param $location
      * @param $array
      *
+     * @param string $opening
+     * @param string $closing
      * @return mixed
      */
-    static function embraceFromFile($location, $array)
+    static function embraceFromFile($location, $array, $opening = '{{', $closing = '}}')
     {
         $appRoot = defined('path') ? path : '';
         $file = file_get_contents($appRoot . '/' . $location);
-        return self::embrace($file, $array);
+        return self::embrace($file, $array, $opening, $closing);
     }
 
 

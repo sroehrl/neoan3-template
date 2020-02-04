@@ -83,15 +83,25 @@ class TemplateTest extends TestCase
         // cross-check
         $this->assertStringNotContainsString('no', $t);
     }
-    public function testCallback(){
+
+    public function testCallback()
+    {
         $array = [
-            'myFunc'=> function($x){ return strtoupper($x); },
+            'myFunc' => function ($x) {
+                return strtoupper($x);
+            },
             'some' => 'value'
         ];
         $t = Template::embraceFromFile('callback.html', $array);
 
         $this->assertStringContainsString('<p>VALUE</p>', $t);
         $this->assertStringContainsString('<li>show me</li>', $t);
+    }
 
+    public function testCustomDelimiter()
+    {
+        $array = ['test'=>'[value]'];
+        $t = Template::embraceFromFile('callback.html', $array, '<!--', '-->');
+        $this->assertStringContainsString('[value]',$t);
     }
 }

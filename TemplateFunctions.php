@@ -6,8 +6,8 @@ namespace Neoan3\Apps;
 
 class TemplateFunctions
 {
-    static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = true){
-        $pattern = "/" . ($pure ? "" : "\{\{") . "$callBackName\(([a-z0-9,\s]+)\)" . ($pure ? "" : "\}\}") . "/i";
+    static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = []){
+        $pattern = "/" . (empty($pure) ? "" : addslashes($pure[0]) . "\s*") . "$callBackName\(([a-z0-9,\s]+)\)" . (empty($pure) ? "" : "\s*" . addslashes($pure[1])) . "/i";
         return preg_replace_callback($pattern, function($hit) use ($closure, $valueArray){
             return $closure($valueArray[$hit[1]]);
         },$content);
