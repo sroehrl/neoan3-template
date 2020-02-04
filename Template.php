@@ -24,9 +24,7 @@ class Template
 
         foreach ($flatArray as $flatKey => $value){
             if(is_callable($value)){
-                $content = preg_replace_callback("/\{\{$flatKey\(([a-z0-9,\s]+)\)\}\}/i", function($hit) use ($value, $flatArray){
-                    return $value($flatArray[$hit[1]]);
-                },$content);
+                $content = TemplateFunctions::executeClosure($content,$flatKey,$value,$flatArray, false);
             } else {
                 $content = str_replace($opening . $flatKey . $closing, $value, $content);
             }
@@ -69,25 +67,6 @@ class Template
         return self::embrace($file, $array);
     }
 
-    /**
-     * @param $input
-     *
-     * @return string
-     */
-    private static function curlyBraces($input)
-    {
-        return '{{' . $input . '}}';
-    }
-
-    /**
-     * @param $input
-     *
-     * @return string
-     */
-    private static function hardBraces($input)
-    {
-        return '[[' . $input . ']]';
-    }
 
     /**
      * @param $input

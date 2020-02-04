@@ -89,7 +89,9 @@ class TemplateTest extends TestCase
             'some' => 'value'
         ];
         $t = Template::embraceFromFile('callback.html', $array);
+
         $this->assertStringContainsString('<p>VALUE</p>', $t);
+        $this->assertStringContainsString('<li>show me</li>', $t);
 
     }
 }
