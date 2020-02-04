@@ -130,10 +130,11 @@ Example:
 $html = '<p n-for="items as item">{{toUpper(item)}}</p>';
 
 $passIn = [
-    'items'=>['chair', 'table'],
-    'toUpper' => function($input){ return strtoupper($input);}
+    'items'=>['chair', 'table']
 ];
-
+\Neoan3\Apps\TemplateFunctions::registerClosure('toUpper', function ($input){
+    return strtoupper($input);
+});
 echo \Neoan3\Apps\Template::embrace($html, $passIn);
 ```
 
@@ -164,8 +165,10 @@ $html = '
 $substitutions = [
     'name' => 'neoan3'
 ];
+// characters are escaped automatically
+\Neoan3\Apps\TemplateFunctions::setDelimiter('<!--','-->');
 
-echo \Neoan3\Apps\Template::embrace($html, $substitutions,'<!--','-->');
+echo \Neoan3\Apps\Template::embrace($html, $substitutions);
 ```
 
 Output:

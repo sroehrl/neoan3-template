@@ -6,30 +6,33 @@ namespace Neoan3\Apps;
 
 class Template
 {
+
     /**
      * @param $content
      * @param $array
      *
-     * @param string $opening
-     * @param string $closing
      * @return mixed
      */
-    static function embrace($content, $array, $opening = '{{', $closing = '}}')
+    static function embrace($content, $array)
     {
         $flatArray = self::flattenArray($array);
         $templateFunctions = ['nFor', 'nIf'];
         foreach ($templateFunctions as $function) {
             $content = self::enforceEmbraceInAttributes(TemplateFunctions::$function($content, $array));
         }
-        $saveOpening = preg_quote($opening);
-        $saveClosing = preg_quote($closing);
+        $saveOpening = preg_quote(TemplateFunctions::getDelimiters()[0]);
+        $saveClosing = preg_quote(TemplateFunctions::getDelimiters()[1]);
         foreach ($flatArray as $flatKey => $value){
             if(is_callable($value)){
-                $content = TemplateFunctions::executeClosure($content,$flatKey,$value,$flatArray, [$opening,$closing]);
+                TemplateFunctions::registerClosure($flatKey,$value);
             } else {
                 $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
+
+                $content = TemplateFunctions::tryClosures($flatArray, $content, false);
+
             }
         }
+
         return $content;
     }
 
@@ -41,7 +44,8 @@ class Template
      */
     static function hardEmbrace($content, $array)
     {
-        return self::embrace($content, $array, '[[', ']]');
+        TemplateFunctions::setDelimiter('[[',']]');
+        return self::embrace($content, $array);
     }
 
     /**
@@ -63,11 +67,11 @@ class Template
      * @param string $closing
      * @return mixed
      */
-    static function embraceFromFile($location, $array, $opening = '{{', $closing = '}}')
+    static function embraceFromFile($location, $array)
     {
         $appRoot = defined('path') ? path : '';
         $file = file_get_contents($appRoot . '/' . $location);
-        return self::embrace($file, $array, $opening, $closing);
+        return self::embrace($file, $array);
     }
 
 

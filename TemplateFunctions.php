@@ -6,12 +6,60 @@ namespace Neoan3\Apps;
 
 class TemplateFunctions
 {
-    static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = []){
-        $pattern = "/" . (empty($pure) ? "" : addslashes($pure[0]) . "\s*") . "$callBackName\(([a-z0-9,\s]+)\)" . (empty($pure) ? "" : "\s*" . addslashes($pure[1])) . "/i";
-        return preg_replace_callback($pattern, function($hit) use ($closure, $valueArray){
-            return $closure($valueArray[$hit[1]]);
-        },$content);
+    private static $registeredClosures = [];
+    private static $registeredDelimiters = ['{{', '}}'];
+
+    static function registerClosure($name, $function)
+    {
+        self::$registeredClosures[$name] = $function;
     }
+
+    static function setDelimiter($opening, $closing)
+    {
+        self::$registeredDelimiters = [$opening, $closing];
+    }
+
+    static function getDelimiters()
+    {
+        return self::$registeredDelimiters;
+    }
+
+    static function tryClosures($substitutions, $content, $executePure = true)
+    {
+        foreach (self::$registeredClosures as $name => $closure) {
+            $content = self::executeClosure($content, $name, $closure, $substitutions, $executePure);
+        }
+        return $content;
+    }
+
+    static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = true)
+    {
+        $pattern = self::retrieveClosurePattern($pure, $callBackName);
+        return preg_replace_callback(
+            $pattern,
+            function ($hit) use ($closure, $valueArray) {
+                if (isset($valueArray[$hit[1]])) {
+                    return $closure($valueArray[$hit[1]]);
+                }
+                return $hit[0];
+            },
+            $content
+        );
+    }
+
+    private static function retrieveClosurePattern($pure, $closureName)
+    {
+        $pattern = '/';
+        if (!$pure) {
+            $pattern .= addslashes(self::$registeredDelimiters[0]) . "\s*";
+        }
+        $pattern .= "$closureName\(([a-z0-9,\s]+)\)";
+        if (!$pure) {
+            $pattern .= "\s*" . addslashes(self::$registeredDelimiters[1]);
+        }
+        return $pattern . "/i";
+    }
+
     private static function extractAttribute(\DOMElement $hit, $attribute)
     {
         // extract attribute
@@ -46,8 +94,12 @@ class TemplateFunctions
                 } else {
                     $subArray[$parts[2]] = $value;
                 }
-                $newContent .= Template::embrace($template, $subArray);
+
+                $momentary = self::tryClosures($subArray, $template, false);
+
+                $newContent .= Template::embrace($momentary, $subArray);
             }
+
             Template::clone($domDocument, $hit, $newContent);
         }
         return $newContent;
@@ -74,7 +126,9 @@ class TemplateFunctions
         }
         return $doc->saveHTML();
     }
-    private static function evaluateTypedCondition(array $flatArray, $expression){
+
+    private static function evaluateTypedCondition(array $flatArray, $expression)
+    {
         $bool = true;
         foreach ($flatArray as $key => $value) {
             if (strpos($expression, $key) !== false) {
@@ -89,7 +143,7 @@ class TemplateFunctions
                         $expression = str_replace($key, '"' . $flatArray[$key] . '"', $expression);
                         break;
                     case 'object':
-                        $expression = self::executeClosure($expression,$key,$flatArray[$key],$flatArray);
+                        $expression = self::executeClosure($expression, $key, $flatArray[$key], $flatArray);
                         break;
                     default:
                         $expression = str_replace($key, $flatArray[$key], $expression);

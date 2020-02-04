@@ -9,6 +9,9 @@
     <ul>
         <li n-if="'myFunc(some)' == 'VALUE'">show me</li>
     </ul>
+    <ul>
+        <li n-for="items as item">{{deepFunc(item)}}</li>
+    </ul>
     <!-- test -->
 </body>
 </html>
