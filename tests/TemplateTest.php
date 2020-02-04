@@ -12,6 +12,10 @@ class TemplateTest extends TestCase
     {
         define('path', dirname(__FILE__));
     }
+    public function setUp(): void
+    {
+        TemplateFunctions::setDelimiter('{{','}}');
+    }
 
     public function testEmbrace()
     {
