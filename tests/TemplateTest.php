@@ -44,7 +44,8 @@ class TemplateTest extends TestCase
     public function testEmbraceFromFile()
     {
         $sub = ['easy' => 'a', 'deep' => ['value' => 'b']];
-        $this->assertSame('<div>a-b</div>', trim(Template::embraceFromFile('embrace.html', $sub)));
+        $t = Template::embraceFromFile('embrace.html', $sub);
+        $this->assertSame('<div>a-b</div>', trim($t));
     }
 
     public function testConditional()
@@ -98,10 +99,29 @@ class TemplateTest extends TestCase
         $this->assertStringContainsString('<li>show me</li>', $t);
     }
 
+    public function testCallbackDeep()
+    {
+        $array = [
+            'items' => ['one', 'two'],
+            'some' => 'value'
+        ];
+        TemplateFunctions::registerClosure('deepFunc',function($input){
+            return $input . '!';
+        });
+        TemplateFunctions::registerClosure('myFunc',function ($x) {
+            return strtoupper($x);
+        });
+        $t = Template::embraceFromFile('callback.html', $array);
+        $this->assertStringContainsString('one!', $t);
+        $this->assertStringContainsString('VALUE', $t);
+
+    }
+
     public function testCustomDelimiter()
     {
-        $array = ['test'=>'[value]'];
-        $t = Template::embraceFromFile('callback.html', $array, '<!--', '-->');
-        $this->assertStringContainsString('[value]',$t);
+        $array = ['test' => '[value]'];
+        TemplateFunctions::setDelimiter('<!--','-->');
+        $t = Template::embraceFromFile('callback.html', $array);
+        $this->assertStringContainsString('[value]', $t);
     }
 }
