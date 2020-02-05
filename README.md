@@ -5,6 +5,22 @@ neoan3 minimal template engine
 [![Maintainability](https://api.codeclimate.com/v1/badges/76b09924300375c4d79a/maintainability)](https://codeclimate.com/github/sroehrl/neoan3-template/maintainability)
 [![Build Status](https://travis-ci.org/sroehrl/neoan3-template.svg?branch=master)](https://travis-ci.org/sroehrl/neoan3-template)
 
+## Installation / Quick start
+
+`composer require neoan3-apps/template`
+
+```php
+use Neoan3\Apps\TemplateFunctions;
+use Neoan3\Apps\Template;
+
+require_once 'vendor/autoload.php';
+
+// optional, if set, path defines the relative starting point to templates
+define('path',__DIR__);
+
+echo Template::embrace('<h1>{{test}}</h1>',['test'=>'Hello World']);
+```
+
 ## Templating
 **neoan3-template** is not a full blown template engine, but rather what a template engine should be: 
 With modern JavaScript solutions creating a dynamic approach, neoan3-template focuses on the necessities of static rendering. 
