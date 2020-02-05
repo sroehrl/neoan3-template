@@ -35,27 +35,38 @@ class TemplateFunctions
     static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = true)
     {
         $pattern = self::retrieveClosurePattern($pure, $callBackName);
-        return preg_replace_callback(
+        $replacement = preg_replace_callback(
             $pattern,
             function ($hit) use ($closure, $valueArray) {
-                if (isset($valueArray[$hit[1]])) {
-                    return $closure($valueArray[$hit[1]]);
+                $params = explode(',', $hit[1]);
+                $finalsInputs = [];
+                $found = true;
+                foreach ($params as $param){
+                    if(!isset($valueArray[trim($param)])){
+                        $found = false;
+                    } else {
+                        $finalsInputs[] = $valueArray[trim($param)];
+                    }
+                }
+                if ($found) {
+                    return $closure(...$finalsInputs);
                 }
                 return $hit[0];
             },
             $content
         );
+        return $replacement;
     }
 
     private static function retrieveClosurePattern($pure, $closureName)
     {
         $pattern = '/';
         if (!$pure) {
-            $pattern .= addslashes(self::$registeredDelimiters[0]) . "\s*";
+            $pattern .= preg_quote(self::$registeredDelimiters[0]) . "\s*";
         }
-        $pattern .= "$closureName\(([a-z0-9,\s]+)\)";
+        $pattern .= "$closureName\(([a-z0-9,\.\s]+)\)";
         if (!$pure) {
-            $pattern .= "\s*" . addslashes(self::$registeredDelimiters[1]);
+            $pattern .= "\s*" . preg_quote(self::$registeredDelimiters[1]);
         }
         return $pattern . "/i";
     }
