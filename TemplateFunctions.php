@@ -6,8 +6,8 @@ namespace Neoan3\Apps;
 
 class TemplateFunctions
 {
-    private static $registeredClosures = [];
-    private static $registeredDelimiters = ['{{', '}}'];
+    private static array $registeredClosures = [];
+    private static array $registeredDelimiters = ['{{', '}}'];
 
     static function registerClosure($name, $function)
     {
@@ -35,7 +35,7 @@ class TemplateFunctions
     static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = true)
     {
         $pattern = self::retrieveClosurePattern($pure, $callBackName);
-        $replacement = preg_replace_callback(
+        return  preg_replace_callback(
             $pattern,
             function ($hit) use ($closure, $valueArray) {
                 $params = explode(',', $hit[1]);
@@ -55,7 +55,6 @@ class TemplateFunctions
             },
             $content
         );
-        return $replacement;
     }
 
     private static function retrieveClosurePattern($pure, $closureName)
