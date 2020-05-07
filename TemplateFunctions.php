@@ -4,26 +4,53 @@
 namespace Neoan3\Apps;
 
 
+/**
+ * Class TemplateFunctions
+ * @package Neoan3\Apps
+ */
 class TemplateFunctions
 {
-    private static array $registeredClosures = [];
-    private static array $registeredDelimiters = ['{{', '}}'];
+    /**
+     * @var array
+     */
+    private static $registeredClosures = [];
+    /**
+     * @var string[]
+     */
+    private static $registeredDelimiters = ['{{', '}}'];
 
+    /**
+     * @param $name
+     * @param $function
+     */
     static function registerClosure($name, $function)
     {
         self::$registeredClosures[$name] = $function;
     }
 
+    /**
+     * @param $opening
+     * @param $closing
+     */
     static function setDelimiter($opening, $closing)
     {
         self::$registeredDelimiters = [$opening, $closing];
     }
 
+    /**
+     * @return string[]
+     */
     static function getDelimiters()
     {
         return self::$registeredDelimiters;
     }
 
+    /**
+     * @param $substitutions
+     * @param $content
+     * @param bool $executePure
+     * @return string|string[]|null
+     */
     static function tryClosures($substitutions, $content, $executePure = true)
     {
         foreach (self::$registeredClosures as $name => $closure) {
@@ -32,6 +59,14 @@ class TemplateFunctions
         return $content;
     }
 
+    /**
+     * @param $content
+     * @param $callBackName
+     * @param $closure
+     * @param $valueArray
+     * @param bool $pure
+     * @return string|string[]|null
+     */
     static function executeClosure($content, $callBackName, $closure, $valueArray, $pure = true)
     {
         $pattern = self::retrieveClosurePattern($pure, $callBackName);
@@ -57,6 +92,11 @@ class TemplateFunctions
         );
     }
 
+    /**
+     * @param $pure
+     * @param $closureName
+     * @return string
+     */
     private static function retrieveClosurePattern($pure, $closureName)
     {
         $pattern = '/';
@@ -70,6 +110,11 @@ class TemplateFunctions
         return $pattern . "/i";
     }
 
+    /**
+     * @param \DOMElement $hit
+     * @param $attribute
+     * @return array
+     */
     private static function extractAttribute(\DOMElement $hit, $attribute)
     {
         // extract attribute
@@ -87,6 +132,14 @@ class TemplateFunctions
         return ['template' => Template::nodeStringify($hit), 'parts' => $parts];
     }
 
+    /**
+     * @param \DOMDocument $domDocument
+     * @param \DOMElement $hit
+     * @param array $paramArray
+     * @param array $parts
+     * @param string $template
+     * @return string
+     */
     static private function subContentGeneration(
         \DOMDocument $domDocument,
         \DOMElement $hit,
@@ -137,6 +190,11 @@ class TemplateFunctions
         return $doc->saveHTML();
     }
 
+    /**
+     * @param array $flatArray
+     * @param $expression
+     * @return bool|mixed
+     */
     private static function evaluateTypedCondition(array $flatArray, $expression)
     {
         $bool = true;
