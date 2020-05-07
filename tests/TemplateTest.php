@@ -24,6 +24,19 @@ class TemplateTest extends TestCase
         $this->assertSame('<div>a-b</div>', Template::embrace($str, $sub));
     }
 
+    public function testEmbraceSanitation()
+    {
+        $array = [
+            's/t', 's\t', 's+t', 's-t', 's{t'
+        ];
+        $template = '<p n-for="array as item">{{item}}</p>';
+        $res = '';
+        foreach ($array as $item){
+            $res .= '<p>'. $item .'</p>';
+        }
+        $this->assertSame($res, trim(Template::embrace($template, ['array' =>$array])));
+    }
+
     public function testFlattenArray()
     {
         $testArray = ['one' => ['some' => 'value'], 'two' => ['item1', 'item2']];
