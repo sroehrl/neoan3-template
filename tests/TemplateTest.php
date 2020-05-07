@@ -115,6 +115,19 @@ class TemplateTest extends TestCase
         $this->assertStringContainsString('<p>VALUE</p>', $t);
         $this->assertStringContainsString('<li>show me</li>', $t);
     }
+    public function testNoCallback()
+    {
+        $array = [
+            'items' => ['one', 'two'],
+            'som' => 'value'
+        ];
+        TemplateFunctions::registerClosure('myFunc',function($x) {
+            return $x . '-shouldnt';
+        });
+        $t = Template::embraceFromFile('callback.html', $array);
+        $this->assertStringContainsString('myFunc(some)',$t);
+
+    }
 
     public function testCallbackDeep()
     {
@@ -128,6 +141,7 @@ class TemplateTest extends TestCase
         TemplateFunctions::registerClosure('myFunc',function ($x) {
             return strtoupper($x);
         });
+
         $t = Template::embraceFromFile('callback.html', $array);
         $this->assertStringContainsString('one!', $t);
         $this->assertStringContainsString('VALUE', $t);
@@ -140,5 +154,11 @@ class TemplateTest extends TestCase
         TemplateFunctions::setDelimiter('<!--','-->');
         $t = Template::embraceFromFile('callback.html', $array);
         $this->assertStringContainsString('[value]', $t);
+    }
+    public function testEvaluateTypedConditionNull()
+    {
+        $array = ['test' => null];
+        $t = Template::embrace('<p n-if="test === false">some</p>', $array);
+        $this->assertStringContainsString('p>some', $t);
     }
 }
