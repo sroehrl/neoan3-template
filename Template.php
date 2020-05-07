@@ -23,6 +23,7 @@ class Template
         $saveOpening = preg_quote(TemplateFunctions::getDelimiters()[0]);
         $saveClosing = preg_quote(TemplateFunctions::getDelimiters()[1]);
         foreach ($flatArray as $flatKey => $value){
+            $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\$0",$flatKey);
             if(is_callable($value)){
                 TemplateFunctions::registerClosure($flatKey,$value);
             } else {
