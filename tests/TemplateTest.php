@@ -27,9 +27,9 @@ class TemplateTest extends TestCase
     public function testEmbraceSanitation()
     {
         $array = [
-            's/t', 's\t', 's+t', 's-t', 's{t'
+            's/t' => 1, 's\t' => 1, 's+t' => 1, 's-t' => 1, 's{t' => 1
         ];
-        $template = '<p n-for="array as item">{{item}}</p>';
+        $template = '<p n-for="array as key => item">{{item}}</p>';
         $res = '';
         foreach ($array as $item){
             $res .= '<p>'. $item .'</p>';
