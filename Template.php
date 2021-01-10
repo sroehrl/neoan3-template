@@ -62,13 +62,11 @@ class Template
      * @param $location
      * @param $array
      *
-     * @param string $opening
-     * @param string $closing
      * @return mixed
      */
     static function embraceFromFile($location, $array)
     {
-        $appRoot = defined('path') ? path : '';
+        $appRoot = defined('path') ? path : dirname(dirname(dirname(__DIR__)));
         $file = file_get_contents($appRoot . '/' . $location);
         return self::embrace($file, $array);
     }
@@ -79,7 +77,7 @@ class Template
      *
      * @return string
      */
-    private static function tBraces($input)
+    private static function tBraces($input): string
     {
         return '<t>' . $input . '</t>';
     }
@@ -120,7 +118,7 @@ class Template
      *
      * @return string
      */
-    static function nodeStringify(\DOMElement $domNode)
+    static function nodeStringify(\DOMElement $domNode): string
     {
         $string = '<' . $domNode->tagName;
         foreach ($domNode->attributes as $attribute) {
