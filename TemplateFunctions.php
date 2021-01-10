@@ -13,11 +13,11 @@ class TemplateFunctions
     /**
      * @var array
      */
-    private static $registeredClosures = [];
+    private static array $registeredClosures = [];
     /**
      * @var string[]
      */
-    private static $registeredDelimiters = ['{{', '}}'];
+    private static array $registeredDelimiters = ['{{', '}}'];
 
     /**
      * @param $name
@@ -195,11 +195,13 @@ class TemplateFunctions
      * @param $expression
      * @return bool|mixed
      */
-    private static function evaluateTypedCondition(array $flatArray, $expression)
+    private static function evaluateTypedCondition(array $flatArray, $expression): bool
     {
-        $bool = true;
+        $bool = false;
         foreach ($flatArray as $key => $value) {
-            if (strpos($expression, $key) !== false) {
+            $pattern = '/' . $key . '([^.]|$)/';
+            if (preg_match($pattern, $expression, $matches)) {
+
                 switch (gettype($flatArray[$key])) {
                     case 'boolean':
                         $expression = str_replace($key, $flatArray[$key] ? 'true' : 'false', $expression);

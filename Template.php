@@ -142,7 +142,7 @@ class Template
      *
      * @return array
      */
-    static function flattenArray($array, $parentKey = false)
+    static function flattenArray($array, $parentKey = false): array
     {
         $answer = [];
         foreach ($array as $key => $value) {
@@ -152,6 +152,8 @@ class Template
             if (!is_array($value)) {
                 $answer[$key] = $value;
             } else {
+                $answer[$key] = 'Array';
+                $answer[$key.'.length'] = sizeof($value);
                 $answer = array_merge($answer, self::flattenArray($value, $key));
             }
         }

@@ -1,7 +1,7 @@
 {
     "name": "neoan3-apps/template",
     "description": "neoan3 minimal template engine",
-    "version": "1.0.5",
+    "version": "1.1.0",
     "license": "MIT",
     "autoload": {
         "psr-4": {
