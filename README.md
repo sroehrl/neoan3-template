@@ -92,7 +92,7 @@ Without the necessity to access keys, use the simple markup items => item.
 $parameters = [
     'items' => ['one', 'two']
 ];
-$html = '<div n-for="items in item">{{item}}</div>';
+$html = '<div n-for="items as item">{{item}}</div>';
 echo \Neoan3\Apps\Template::embrace($html, $parameters);
 ```
 Output:
@@ -122,7 +122,7 @@ Example within n-for:
 $parameters = [
     'items' => ['one', 'two']
 ];
-$html = '<div n-for="items in item"><span n-if="item != \'one\'">{{item}}</span></div>';
+$html = '<div n-for="items as item"><span n-if="item != \'one\'">{{item}}</span></div>';
 echo \Neoan3\Apps\Template::embrace($html, $parameters);
 
 ```
