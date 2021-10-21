@@ -143,11 +143,16 @@ However, you can pass in custom closures to achieve custom transformation or sim
 Example:
 
 ```PHP
-$html = '<p n-for="items as item">{{toUpper(item)}}</p>';
+$html = '<h3>{{headline(items.length)}}</h3><p n-for="items as item">{{toUpper(item)}}</p>';
 
 $passIn = [
     'items'=>['chair', 'table']
 ];
+// pluralize
+\Neoan3\Apps\TemplateFunctions::registerClosure('headline', function ($input){
+    return $input . ' item' . ($input>1 ? 's' : '');
+});
+// transform uppercase
 \Neoan3\Apps\TemplateFunctions::registerClosure('toUpper', function ($input){
     return strtoupper($input);
 });
@@ -157,6 +162,7 @@ echo \Neoan3\Apps\Template::embrace($html, $passIn);
 Output:
 
 ```html
+<h3>2 items</h3>
 <p>CHAIR</p>
 <p>TABLE</p>
 

@@ -24,12 +24,10 @@ class Template
         $saveClosing = preg_quote(TemplateFunctions::getDelimiters()[1]);
         foreach ($flatArray as $flatKey => $value){
             $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\\\\$0",$flatKey);
-            if(is_callable($value)){
-                TemplateFunctions::registerClosure($flatKey,$value);
-            } else {
-                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
-                $content = TemplateFunctions::tryClosures($flatArray, $content, false);
-            }
+            // PATCHED: direct function injection is not allowed anymore
+            $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
+            $content = TemplateFunctions::tryClosures($flatArray, $content, false);
+
         }
 
         return $content;

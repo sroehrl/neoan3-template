@@ -113,11 +113,11 @@ class TemplateTest extends TestCase
     public function testCallback()
     {
         $array = [
-            'myFunc' => function ($x) {
-                return strtoupper($x);
-            },
             'some' => 'value'
         ];
+        TemplateFunctions::registerClosure('myFunc',function($x){
+            return strtoupper($x);
+        });
         $t = Template::embraceFromFile('callback.html', $array);
 
         $this->assertStringContainsString('<p>VALUE</p>', $t);

@@ -103,7 +103,7 @@ class TemplateFunctions
         if (!$pure) {
             $pattern .= preg_quote(self::$registeredDelimiters[0]) . "\s*";
         }
-        $pattern .= "$closureName\(([a-z0-9,\.\s]+)\)";
+        $pattern .= "$closureName\(([a-z0-9,\.\s_]+)\)";
         if (!$pure) {
             $pattern .= "\s*" . preg_quote(self::$registeredDelimiters[1]);
         }
@@ -201,7 +201,6 @@ class TemplateFunctions
         foreach ($flatArray as $key => $value) {
             $pattern = '/' . $key . '([^.]|$)/';
             if (preg_match($pattern, $expression, $matches)) {
-
                 switch (gettype($flatArray[$key])) {
                     case 'boolean':
                         $expression = str_replace($key, $flatArray[$key] ? 'true' : 'false', $expression);
@@ -241,11 +240,12 @@ class TemplateFunctions
             return $content;
         }
 
+        $array = Template::flattenArray($array);
+        // important: first try closures
+        $array = array_merge(self::$registeredClosures, $array);
         foreach ($hits as $hit) {
             $expression = $hit->getAttribute('n-if');
-            $array = Template::flattenArray($array);
             $bool = self::evaluateTypedCondition($array, $expression);
-
             if (!$bool) {
                 $hit->parentNode->removeChild($hit);
             } else {
