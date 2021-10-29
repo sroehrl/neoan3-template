@@ -4,6 +4,8 @@
 namespace Neoan3\Apps;
 
 
+use Throwable;
+
 /**
  * Class TemplateFunctions
  * @package Neoan3\Apps
@@ -218,7 +220,11 @@ class TemplateFunctions
                         $expression = str_replace($key, $flatArray[$key], $expression);
                         break;
                 }
-                $bool = eval("return $expression;");
+                try {
+                    $bool = eval("return $expression;");
+                } catch (Throwable $e) {
+                    echo "TEMPLATE PARSE ERROR: $expression <br>" . $e->getMessage();
+                }
             }
         }
         return $bool;
