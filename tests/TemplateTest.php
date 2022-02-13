@@ -169,4 +169,12 @@ class TemplateTest extends TestCase
         $t = Template::embrace('<p n-if="test === false">some</p>', $array);
         $this->assertStringContainsString('p>some', $t);
     }
+    public function testUtf8()
+    {
+        $array = ['one'=> 'über','keß'=>'plunder'];
+        $t = Template::embrace('<p n-if="one == \'über\'">show</p>', $array);
+        $this->assertStringContainsString('show', $t);
+        $t = Template::embrace('<p>{{keß}}</p>', $array);
+        $this->assertStringContainsString('plunder', $t);
+    }
 }
