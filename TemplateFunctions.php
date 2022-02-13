@@ -189,7 +189,7 @@ class TemplateFunctions
             $extracted = self::extractAttribute($hit, 'n-for');
             self::subContentGeneration($doc, $hit, $array, $extracted['parts'], $extracted['template']);
         }
-        return $doc->saveHTML();
+        return utf8_decode($doc->saveHTML($doc->documentElement));
     }
 
     /**
@@ -258,6 +258,6 @@ class TemplateFunctions
                 $hit->removeAttribute('n-if');
             }
         }
-        return $doc->saveHTML();
+        return utf8_decode($doc->saveHTML($doc->documentElement));
     }
 }
