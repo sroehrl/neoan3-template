@@ -251,7 +251,7 @@ class TemplateFunctions
         $array = array_merge(self::$registeredClosures, $array);
         foreach ($hits as $hit) {
             $expression = $hit->getAttribute('n-if');
-            $bool = self::evaluateTypedCondition($array, $expression);
+            $bool = self::evaluateTypedCondition($array, utf8_decode($expression));
             if (!$bool) {
                 $hit->parentNode->removeChild($hit);
             } else {
