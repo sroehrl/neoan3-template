@@ -27,13 +27,14 @@ class TemplateTest extends TestCase
     public function testEmbraceSanitation()
     {
         $array = [
-            's/t' => 1, 's\t' => 1, 's+t' => 1, 's-t' => 1, 's{t' => 1
+            's/t' => 1, 's\t' => 2, 's+t' => 3, 's-t' => 4, 's{t' => 1
         ];
-        $template = '<p n-for="array as key => item">{{item}}</p>';
-        $res = '';
+        $template = '<div><p n-for="array as key => item">{{item}}</p></div>';
+        $res = '<div>';
         foreach ($array as $item){
             $res .= '<p>'. $item .'</p>';
         }
+        $res .= '</div>';
         $this->assertSame($res, trim(Template::embrace($template, ['array' =>$array])));
     }
 
@@ -168,5 +169,13 @@ class TemplateTest extends TestCase
         $array = ['test' => null];
         $t = Template::embrace('<p n-if="test === false">some</p>', $array);
         $this->assertStringContainsString('p>some', $t);
+    }
+    public function testUtf8()
+    {
+        $array = ['one'=> 'über','keß'=>'plunder'];
+        $t = Template::embraceFromFile('utf8.html', $array);
+        $this->assertStringContainsString('show', $t);
+        $t = Template::embraceFromFile('utf8.html', $array);
+        $this->assertStringContainsString('plunder', $t);
     }
 }

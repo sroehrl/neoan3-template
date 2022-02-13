@@ -189,7 +189,7 @@ class TemplateFunctions
             $extracted = self::extractAttribute($hit, 'n-for');
             self::subContentGeneration($doc, $hit, $array, $extracted['parts'], $extracted['template']);
         }
-        return $doc->saveHTML();
+        return utf8_decode($doc->saveHTML($doc->documentElement));
     }
 
     /**
@@ -251,13 +251,13 @@ class TemplateFunctions
         $array = array_merge(self::$registeredClosures, $array);
         foreach ($hits as $hit) {
             $expression = $hit->getAttribute('n-if');
-            $bool = self::evaluateTypedCondition($array, $expression);
+            $bool = self::evaluateTypedCondition($array, utf8_decode($expression));
             if (!$bool) {
                 $hit->parentNode->removeChild($hit);
             } else {
                 $hit->removeAttribute('n-if');
             }
         }
-        return $doc->saveHTML();
+        return utf8_decode($doc->saveHTML($doc->documentElement));
     }
 }
