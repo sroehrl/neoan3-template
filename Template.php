@@ -24,8 +24,9 @@ class Template
         $saveClosing = preg_quote(TemplateFunctions::getDelimiters()[1]);
         foreach ($flatArray as $flatKey => $value){
             $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\\\\$0",$flatKey);
-            // PATCHED: direct function injection is not allowed anymore
-            $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
+            if(!is_null($value)){
+                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", (string) $value, $content);
+            }
             $content = TemplateFunctions::tryClosures($flatArray, $content, false);
 
         }
@@ -138,7 +139,7 @@ class Template
      *
      * @return array
      */
-    static function flattenArray($array, $parentKey = false): array
+    static function flattenArray($array, bool $parentKey = false): array
     {
         $answer = [];
         foreach ($array as $key => $value) {
