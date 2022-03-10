@@ -25,7 +25,7 @@ class Template
         foreach ($flatArray as $flatKey => $value){
             $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\\\\$0",$flatKey);
             if(!is_null($value)){
-                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", (string) $value, $content);
+                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
             }
             $content = TemplateFunctions::tryClosures($flatArray, $content, false);
 
