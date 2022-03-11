@@ -25,7 +25,6 @@ class Template
         foreach ($flatArray as $flatKey => $value){
             $value = is_null($value) ? '' : $value;
             $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\\\\$0",$flatKey);
-
             $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
             $content = TemplateFunctions::tryClosures($flatArray, $content, false);
 
@@ -135,11 +134,11 @@ class Template
 
     /**
      * @param      $array
-     * @param bool $parentKey
+     * @param string|null $parentKey
      *
      * @return array
      */
-    static function flattenArray($array, bool $parentKey = false): array
+    static function flattenArray($array, string $parentKey = null): array
     {
         $answer = [];
         foreach ($array as $key => $value) {
