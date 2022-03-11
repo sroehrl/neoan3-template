@@ -23,10 +23,10 @@ class Template
         $saveOpening = preg_quote(TemplateFunctions::getDelimiters()[0]);
         $saveClosing = preg_quote(TemplateFunctions::getDelimiters()[1]);
         foreach ($flatArray as $flatKey => $value){
+            $value - is_null($value) ? false : $value;
             $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\\\\$0",$flatKey);
-            if(!is_null($value)){
-                $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
-            }
+
+            $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
             $content = TemplateFunctions::tryClosures($flatArray, $content, false);
 
         }
