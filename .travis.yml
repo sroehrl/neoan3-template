@@ -4,9 +4,11 @@ env:
     - XDEBUG_MODE=coverage
 
 language: php
+dist: bionic
 php:
   - '7.4'
   - '8.0'
+  - '8.1.0'
 
 before_script:
   - travis_retry composer update ${COMPOSER_FLAGS} --no-interaction --prefer-dist
