@@ -24,10 +24,14 @@ class NFor
                 $newContext = $this->createNewContext($contextData[$split[0] . '.'.$i], $sub, $i);
 
                 $newDoc = new Interpreter($attr->ownerDocument->saveHTML($clone),$newContext, true);
-                $fresh = new \DOMDocument();
-                $fresh->loadHTML($newDoc->asHtml(), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-                $imported = $attr->ownerDocument->importNode($fresh->documentElement, true);
-                $attr->parentNode->parentNode->appendChild($imported);
+                $html = $newDoc->asHtml();
+                if(!empty(trim($html))){
+                    $fresh = new \DOMDocument();
+                    $fresh->loadHTML( $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                    $imported = $attr->ownerDocument->importNode($fresh->documentElement, true);
+                    $attr->parentNode->parentNode->appendChild($imported);
+                }
+
 
             }
             // remove original

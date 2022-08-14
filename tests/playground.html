@@ -7,7 +7,7 @@
 <body>
 <h3>{{headline(items.length)}}</h3>
 <ul>
-    <li n-for="items as e => item">{{item}}{{myFunc(item)}}</li>
+    <li n-for="items as e => item" n-if="item !== 'two'">{{item}}{{myFunc(item)}}</li>
 </ul>
 <p>{{umlaut}}</p>
 <p class="{{some}}-{{fake}}">{{some}}</p>

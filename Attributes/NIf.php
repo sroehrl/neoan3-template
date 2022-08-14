@@ -19,10 +19,15 @@ class NIf
         //
         $obfuscated = preg_replace("/'[^']+'/", "_", $toString);
         preg_match_all("/([\p{L}a-z0-9.]+)/", $obfuscated, $matches, PREG_SET_ORDER);
+        $hit = false;
         foreach ($matches as $match){
             if(isset($contextData[$match[0]])) {
                 $toString = str_replace($match[0], $this->typeCheck($contextData[$match[0]]), $toString);
+                $hit = true;
             }
+        }
+        if(!$hit){
+            return $toString;
         }
         try{
             $result = eval("return $toString;");

@@ -21,7 +21,7 @@ class Interpreter
     {
 
         // play:
-        self::$customAttributes = ['n-if' => new NIf(),'n-for' => new NFor()];
+        self::$customAttributes = ['n-for' => new NFor(), 'n-if' => new NIf()];
 
         $this->html = $html;
         $this->skipEncoding = $skipEncoding;
