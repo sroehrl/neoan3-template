@@ -15,22 +15,7 @@ class Template
      */
     static function embrace($content, $array)
     {
-        $flatArray = self::flattenArray($array);
-        $templateFunctions = ['nFor', 'nIf'];
-        foreach ($templateFunctions as $function) {
-            $content = self::enforceEmbraceInAttributes(TemplateFunctions::$function($content, $array));
-        }
-        $saveOpening = preg_quote(TemplateFunctions::getDelimiters()[0]);
-        $saveClosing = preg_quote(TemplateFunctions::getDelimiters()[1]);
-        foreach ($flatArray as $flatKey => $value){
-            $value = is_null($value) ? '' : $value;
-            $flatKey = preg_replace('/[\/\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-]/', "\\\\$0",$flatKey);
-            $content = preg_replace("/$saveOpening\s*$flatKey\s*$saveClosing/", $value, $content);
-            $content = TemplateFunctions::tryClosures($flatArray, $content, false);
-
-        }
-
-        return $content;
+        $interpreter = ''
     }
 
     /**
