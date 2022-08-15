@@ -136,9 +136,19 @@ class Interpreter
     function handleTextNode(DOMText $node): void
     {
         // readDelimiter
-        $node->nodeValue = $this->readDelimiter($node->nodeValue);
-        // handle functions
-        $this->handleFunctions($node);
+        $givenValue = $this->readDelimiter($node->nodeValue);
+        if($givenValue !== strip_tags($givenValue)){
+            $subDoc = new Interpreter($givenValue, $this->contextData);
+            $fragment = $this->doc->createDocumentFragment();
+            $fragment->appendXML($subDoc->asHtml());
+            $node->nodeValue = '';
+            $node->parentNode->appendChild($fragment);
+        } else {
+            $node->nodeValue = $this->readDelimiter($node->nodeValue);
+            // handle functions
+            $this->handleFunctions($node);
+        }
+
     }
 
     /**
@@ -206,6 +216,10 @@ class Interpreter
 
         if($found){
             $string = $this->replaceVariables($matches, $string);
+            // is this a fragment?
+            if($string !== strip_tags($string)){
+
+            }
         }
         return $string;
     }
