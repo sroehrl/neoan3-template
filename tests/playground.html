@@ -5,12 +5,15 @@
     <title>Title</title>
 </head>
 <body>
-<h3>{{headline(items.length)}}</h3>
-<ul>
-    <li n-for="items as e => item" n-if="item !== 'two'">{{item}}{{myFunc(item)}}</li>
-</ul>
-<p>{{umlaut}}</p>
-<p class="{{some}}-{{fake}}">{{some}}</p>
-<div n-if="items.0 === 'öne' && !later ">I don't want to see this</div>
+<section>
+    <h3>{{headline(items.length)}}</h3>
+    <ul>
+        <li n-for="items as e => item" n-if="item !== 'two'">{{item}}{{myFunc(item)}}</li>
+    </ul>
+    <p>{{umlaut}}</p>
+    <p class="{{some}}-{{fake}}">{{some}}</p>
+    <div n-if="items.0 === 'öne' && !later ">I don't want to see this</div>
+</section>
+
 </body>
 </html>

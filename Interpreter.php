@@ -80,7 +80,7 @@ class Interpreter
      */
     private function ensureEncoding(string $html): string
     {
-        if(!$this->skipEncoding && !strpos($html, '<!DOCTYPE html>')){
+        if(!$this->skipEncoding && !str_contains($html, '<!DOCTYPE html>')){
             $partial = $this->getFragmentCompletions();
             $this->isFragment = true;
             $html = $partial[0] .$html . $partial[1];
@@ -115,17 +115,24 @@ class Interpreter
                 // attributes?
                 if($child->hasAttributes()){
                     $this->handleAttributes($child);
-                    // attribute functions?
                 }
                 // IS delimiter?
-                if(Constants::delimiterIsTag() && $child->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($child->textContent)])){
-                    $child->nodeValue = $this->flatData[trim($child->textContent)];
-                }
+                $this->handleDelimiterIsTag($child);
+
             }
             if($child instanceof DOMText && trim($child->nodeValue) !== ''){
                 $this->handleTextNode($child);
             }
-            $this->stepThrough($child->childNodes);
+            if($child->hasChildNodes()){
+                $this->stepThrough($child->childNodes);
+            }
+        }
+    }
+
+    function handleDelimiterIsTag(DOMElement $node): void
+    {
+        if(Constants::delimiterIsTag() && $node->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($node->textContent)])){
+            $node->nodeValue = $this->flatData[trim($node->textContent)];
         }
     }
 
@@ -136,9 +143,24 @@ class Interpreter
     function handleTextNode(DOMText $node): void
     {
         // readDelimiter
-        $node->nodeValue = $this->readDelimiter($node->nodeValue);
-        // handle functions
-        $this->handleFunctions($node);
+        $givenValue = $this->readDelimiter($node->nodeValue);
+        if($givenValue !== strip_tags($givenValue)){
+            $this->appendAsFragment($node, $givenValue);
+        } else {
+            $node->nodeValue = $this->readDelimiter($node->nodeValue);
+            // handle functions
+            $this->handleFunctions($node);
+        }
+
+    }
+
+    private function appendAsFragment(DOMText $parentNode, string $htmlPartial): void
+    {
+        $subDoc = new Interpreter($htmlPartial, $this->contextData);
+        $fragment = $this->doc->createDocumentFragment();
+        $fragment->appendXML($subDoc->asHtml());
+        $parentNode->nodeValue = '';
+        $parentNode->parentNode->appendChild($fragment);
     }
 
     /**
@@ -152,14 +174,18 @@ class Interpreter
             $pattern = "/({$delimiter[0]}.*)*$function\(([^)]*)\)(.*{$delimiter[1]})*/";
             $hit = preg_match_all($pattern, $element->nodeValue, $matches, PREG_SET_ORDER);
             if($hit){
-                foreach($matches as $match){
-                    if(!empty($match[2]) && array_key_exists($match[2],$this->flatData)){
-                        $element->nodeValue = str_replace($match[0], $closure($this->flatData[$match[2]]), $element->nodeValue);
-                    } elseif (empty($match[2])){
-                        $element->nodeValue = str_replace($match[0], $closure(), $element->nodeValue);
-                    }
-                }
+                $this->executeFunction($closure, $matches, $element);
+            }
+        }
+    }
 
+    private function executeFunction(callable $callable, $matches, $element): void
+    {
+        foreach($matches as $match){
+            if(!empty($match[2]) && array_key_exists($match[2],$this->flatData)){
+                $element->nodeValue = str_replace($match[0], $callable($this->flatData[$match[2]]), $element->nodeValue);
+            } elseif (empty($match[2])){
+                $element->nodeValue = str_replace($match[0], $callable(), $element->nodeValue);
             }
         }
     }
@@ -206,6 +232,7 @@ class Interpreter
 
         if($found){
             $string = $this->replaceVariables($matches, $string);
+
         }
         return $string;
     }
@@ -218,7 +245,7 @@ class Interpreter
     private function replaceVariables(array $matches, string $content): string
     {
         foreach ($matches as $pair){
-            if(isset($this->flatData[trim($pair[1])])){
+            if(array_key_exists(trim($pair[1]), $this->flatData)){
                 $content = str_replace($pair[0], $this->flatData[trim($pair[1])], $content);
             }
         }
