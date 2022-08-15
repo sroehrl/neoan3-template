@@ -1,5 +1,5 @@
 # neoan3-apps/template
-neoan3 minimal template engine
+PHP template engine
 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/76b09924300375c4d79a/test_coverage)](https://codeclimate.com/github/sroehrl/neoan3-template/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/76b09924300375c4d79a/maintainability)](https://codeclimate.com/github/sroehrl/neoan3-template/maintainability)
@@ -10,24 +10,29 @@ neoan3 minimal template engine
 `composer require neoan3-apps/template`
 
 ```php
-use Neoan3\Apps\TemplateFunctions;
-use Neoan3\Apps\Template;
+use Neoan3\Apps\Template\Constants;
+use Neoan3\Apps\Template\Template;
 
 require_once 'vendor/autoload.php';
 
 // optional, if set, path defines the relative starting point to templates
-define('path',__DIR__);
+Constants::setPath(__DIR__ . '/templates');
 
 echo Template::embrace('<h1>{{test}}</h1>',['test'=>'Hello World']);
 ```
+
+- [Templating](#templating)
+- [Iterations](#iterations-n-for)
+- [Conditions](#conditions-n-if)
+- [Custom Functions](#custom-functions)
+- [Custom Delimiter](#custom-delimiter)
+- [Custom Attributes](#custom-attributes)
+- [OOP]
 
 ## Templating
 **neoan3-template** is not a full blown template engine, but rather what a template engine should be: 
 With modern JavaScript solutions creating a dynamic approach, neoan3-template focuses on the necessities of static rendering. 
 
-_NOTE:_ For historical reasons, neoan3-apps/ops inherits all neoan3-template functions.
-Refactoring is not necessary, but we suggest using the class **Template** instead of **Ops**
-going forward to account for eventual future deprecation.
 
 _profile.html_
 ```HTML
@@ -46,7 +51,7 @@ $dynamicContent = [
         ...
     ]
 ];
-echo \Neoan3\Apps\Template::embraceFromFile('profile.html',$dynamicContent);
+echo \Neoan3\Apps\Template\Template::embraceFromFile('profile.html',$dynamicContent);
 ```
 _output_
 ```HTML
@@ -60,30 +65,9 @@ _output_
 Replaces array-keys indicated by double curly braces with the appropriate value
 #### embraceFromFile($fileLocation, $substitutionArray)
 Reads content of a file and executes the embrace function.
->When using Neoan3, the location starts at the root of your application. As a stand-alone, either define "path" accordingly (as a global constant) or use the fallback to the root of the server.
 
-#### hardEmbrace($string, $substitutionArray)
-When working with front-end technology, the similarity of markup can either be wanted (e.g. Vue fills content PHP could not), or ambiguous.
-You can choose "hardEmbrace" to use double hard brackets instead.
 
-`<h1>[[key]]</h1>`
-#### tEmbrace($string, $substitutionArray)
-Used for i18n (internationalization) in Neoan3, this method replaces based on t-tags in your markup.
-```PHP
-$german = ['hello'=>'hallo'];
-$html = '
-    <h1><t>hello</t></h1>
-';
-\Neoan3\Apps\Template::tEmbrace($html, $german);
-```
-Output:
-`<h1>hallo</h1>`
-
-_NOTE:_ tEmbrace assumes that dynamically calling translations is cost intensive. 
-Unlike "embrace", "hardEmbrace" and "embraceFromFile" it does not 
-support any functionality other than substitution.  
-
-## loop (n-for)
+## Iterations (n-for)
 
 The n-for loop evaluates as PHP's foreach and uses the same syntax (excluding the $-sign).
 In order to access keys, use the PHP markup (items as key => value) to emulate $items as $key => $value.
@@ -103,7 +87,7 @@ Output:
 ```
 
 
-## Condition (n-if)
+## Conditions (n-if)
 
 You can attach the n-if attribute to any tag in order to render conditionally. 
 Curly braces are not required and nesting follows the same rules as general rendering 
@@ -149,11 +133,11 @@ $passIn = [
     'items'=>['chair', 'table']
 ];
 // pluralize
-\Neoan3\Apps\TemplateFunctions::registerClosure('headline', function ($input){
+\Neoan3\Apps\Template\Constants::addCustomFunction('headline', function ($input){
     return $input . ' item' . ($input>1 ? 's' : '');
 });
 // transform uppercase
-\Neoan3\Apps\TemplateFunctions::registerClosure('toUpper', function ($input){
+\Neoan3\Apps\Template\Constants::addCustomFunction('toUpper', function ($input){
     return strtoupper($input);
 });
 echo \Neoan3\Apps\Template::embrace($html, $passIn);
@@ -180,7 +164,7 @@ Example:
 
 ```php
 $html = '
-<!-- name -->
+<p>[[name]]</p>
 <p>Here is content</p>
 ';
 
@@ -188,14 +172,130 @@ $substitutions = [
     'name' => 'neoan3'
 ];
 // characters are escaped automatically
-\Neoan3\Apps\TemplateFunctions::setDelimiter('<!--','-->');
+\Neoan3\Apps\Template\Constants::setDelimiter('[[',']]');
 
-echo \Neoan3\Apps\Template::embrace($html, $substitutions);
+echo \Neoan3\Apps\Template\Template::embrace($html, $substitutions);
 ```
 
 Output:
 
 ```html
-<!-- neoan3 -->
+<p>neoan3</p>
 <p>Here is content</p>
+```
+
+**NOTE:** If your delimiter is a tag, the engine will **NOT** remove the delimiter:
+
+```php 
+use \Neoan3\Apps\Template\Constants;
+use \Neoan3\Apps\Template\Template;
+
+Constants::setDelimiter('<translation>','</translation>');
+
+$esperanto = [
+    'hello' => 'saluton'
+];
+
+$user => ['userName' => 'Sammy', ...];
+
+$html = "<h1><translation>hello</translation> {{userName}}</h1>";
+
+$translated = Template::embrace($html, $esperanto);
+
+Constants::setDelimiter('{{','}}');
+
+echo Template::embrace($translated, $user);
+```
+
+Output:
+
+```html
+<h1><translation>saluton</translation> Sammy</h1>
+```
+
+## Custom Attributes
+
+Under the hood, n-if and n-for are just custom attributes.
+You can add your own attributes and extend the engine to your needs using any callable:
+
+```php 
+use \Neoan3\Apps\Template\Constants;
+
+class TranslateMe
+{
+    private string $language;
+    
+    // you will receive the native DOMAttr from DOMDocument
+    // and the user-provided array
+    function __invoke(\DOMAttr &$attr, $contextData = []): void
+    {
+        // here we are going to use the "flat" version of the context data
+        // it translates something like 
+        // ['en' => ['hallo'=>'hello']] to ['en.hallo' => 'hello]
+        $flatValues = Constants::flattenArray($contextData[$this->language]);
+    
+        // if we find the content of the actual element in our translations:
+        if(isset($flatValues[$attr->parentNode->nodeValue])){
+            $attr->parentNode->nodeValue = $flatValues[$attr->parentNode->nodeValue];
+        }
+    }
+    function __construct(string $lang)
+    {
+        $this->language = $lang;
+    }
+}
+
+```
+```html
+<!-- main.html -->
+<p translate>hallo</p>
+```
+```php 
+use \Neoan3\Apps\Template\Constants;
+use \Neoan3\Apps\Template\Template;
+...
+$translations = [
+    'en' => [
+        'hallo' => 'hello',
+        ...
+    ],
+    'es' => [
+        'hallo' => 'hola',
+        ...
+    ]
+];
+
+$userLang = 'en';
+
+Constants::addCustomAttribute('translate', new TranslateMe($userLang));
+echo Template::embraceFromFile('/main.html', $translations)
+
+```
+
+## OOP
+
+So far, we have used a purely static approach. However, the "Template" methods are merely facades resulting in the initialization 
+of the Interpreter. If you need more control over what is happening, or it better fits your situation, you are welcome to use it directly:
+
+````php 
+$html = file_get_contents(__DIR__ . '/test.html);
+
+$contextData = [
+    'my' => 'value'
+];
+$templating = new \Neoan3\Apps\Template\Interpreter($html, $contextData);
+
+
+// at this point, nothing is parsed or set if we wanted to use the attributes n-if or n-for, we would have to set it
+// note how we are free to change the naming now
+
+\Neoan3\Apps\Template\Constants::addCustomAttribute('only-if', new \Neoan3\Apps\Attributes\NIf());
+
+// Let's parse in one step:
+$templating->parse();
+
+// And output
+
+echo $templating->asHtml();
+
 ```

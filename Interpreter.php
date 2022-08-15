@@ -1,59 +1,83 @@
 <?php
 
-namespace Neoan3\Apps;
+namespace Neoan3\Apps\Template;
 
+use DOMAttr;
+use DOMDocument;
+use DOMElement;
 use DOMNodeList;
-use Neoan3\Apps\Attributes\NFor;
-use Neoan3\Apps\Attributes\NIf;
+use DOMText;
 
+/**
+ *
+ */
 class Interpreter
 {
+    /**
+     * @var array
+     */
     private array $contextData;
-    private \DOMDocument $doc;
-    private static array $customAttributes = [];
+    /**
+     * @var DOMDocument
+     */
+    private DOMDocument $doc;
+    /**
+     * @var bool
+     */
     private bool $isFragment = false;
-    private string $encoding = 'utf-8';
+    /**
+     * @var bool|mixed
+     */
     private bool $skipEncoding;
-    private static array $customFunctions = [];
+    /**
+     * @var string
+     */
     private string $html;
-    private static array $delimiter = ['{{','}}'];
-    function __construct($html, $contextData, $skipEncoding = false)
-    {
+    private array $flatData;
 
-        // play:
-        self::$customAttributes = ['n-for' => new NFor(), 'n-if' => new NIf()];
+
+    /**
+     * @param $html
+     * @param $contextData
+     * @param bool $skipEncoding
+     */
+    function __construct($html, $contextData, bool $skipEncoding = false)
+    {
 
         $this->html = $html;
         $this->skipEncoding = $skipEncoding;
-        $this->contextData = $this->flattenArray($contextData);
+        $this->contextData = $contextData;
+        $this->flatData = Constants::flattenArray($contextData);
 
     }
-    function addCustomFunction(string $name, callable $callable):void
-    {
-        self::$customFunctions[$name] = $callable;
-    }
-    function addCustomAttribute(string $name, callable $instance):void
-    {
-        self::$customAttributes[$name] = $instance;
-    }
-    function setEncoding(string $encoding):void
-    {
-        $this->encoding = $encoding;
-    }
+
+    /**
+     * @return void
+     */
     function parse(): void
     {
         $this->html = $this->ensureEncoding($this->html);
-        $this->doc = new \DOMDocument();
+        $this->doc = new DOMDocument();
         @$this->doc->loadHTML($this->html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         $this->stepThrough($this->doc->childNodes);
     }
+
+    /**
+     * @return string[]
+     */
     private function getFragmentCompletions(): array
     {
+        $encoding = Constants::getEncoding();
         return [
-            "<!DOCTYPE html><html><head><meta content=\"text/html; charset={$this->encoding}\" http-equiv=\"Content-Type\"></head><body>",
+            "<!DOCTYPE html><html><head><meta content=\"text/html; charset=$encoding\" http-equiv=\"Content-Type\"></head><body>",
             "</body></html>"
         ];
     }
+
+    /**
+     * @param string $html
+     * @return string
+     */
     private function ensureEncoding(string $html): string
     {
         if(!$this->skipEncoding && !str_contains($html, '<!DOCTYPE html>')){
@@ -64,6 +88,9 @@ class Interpreter
         return $html;
     }
 
+    /**
+     * @return string
+     */
     function asHtml(): string
     {
         if(!isset($this->doc)){
@@ -76,99 +103,126 @@ class Interpreter
         }
         return $output;
     }
+
+    /**
+     * @param DOMNodeList $nodes
+     * @return void
+     */
     function stepThrough(DOMNodeList $nodes): void
     {
         foreach($nodes as $child){
-            if($child instanceof \DOMElement){
+            if($child instanceof DOMElement){
+                // attributes?
                 if($child->hasAttributes()){
                     $this->handleAttributes($child);
                     // attribute functions?
                 }
+                // IS delimiter?
+                if(Constants::delimiterIsTag() && $child->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($child->textContent)])){
+                    $child->nodeValue = $this->flatData[trim($child->textContent)];
+                }
             }
-            if($child instanceof \DOMText && trim($child->nodeValue) !== ''){
-                // readDelimiter
-                $child->nodeValue = $this->readDelimiter($child->nodeValue);
-                // handle functions
-                $this->handleFunctions($child);
+            if($child instanceof DOMText && trim($child->nodeValue) !== ''){
+                $this->handleTextNode($child);
             }
-
-
             $this->stepThrough($child->childNodes);
         }
     }
-    function handleFunctions(\DOMText $element): void
+
+    /**
+     * @param DOMText $node
+     * @return void
+     */
+    function handleTextNode(DOMText $node): void
     {
-        foreach (self::$customFunctions as $function => $closure){
-            $delimiter = self::$delimiter;
-            $pattern = "/({$delimiter[0]}.*)*$function\(([^)]+)\)(.*{$delimiter[1]})*/";
+        // readDelimiter
+        $node->nodeValue = $this->readDelimiter($node->nodeValue);
+        // handle functions
+        $this->handleFunctions($node);
+    }
+
+    /**
+     * @param DOMText $element
+     * @return void
+     */
+    function handleFunctions(DOMText $element): void
+    {
+        foreach (Constants::getCustomFunctions() as $function => $closure){
+            $delimiter = Constants::getDelimiter();
+            $pattern = "/({$delimiter[0]}.*)*$function\(([^)]*)\)(.*{$delimiter[1]})*/";
             $hit = preg_match_all($pattern, $element->nodeValue, $matches, PREG_SET_ORDER);
             if($hit){
                 foreach($matches as $match){
-                    if(isset($this->contextData[$match[2]])){
-                        $element->nodeValue = str_replace($match[0], $closure($this->contextData[$match[2]]), $element->nodeValue);
+                    if(!empty($match[2]) && array_key_exists($match[2],$this->flatData)){
+                        $element->nodeValue = str_replace($match[0], $closure($this->flatData[$match[2]]), $element->nodeValue);
+                    } elseif (empty($match[2])){
+                        $element->nodeValue = str_replace($match[0], $closure(), $element->nodeValue);
                     }
                 }
 
             }
         }
     }
-    function handleAttributes(\DOMElement $element): void
+
+
+    /**
+     * @param DOMElement $element
+     * @return void
+     */
+    function handleAttributes(DOMElement $element): void
     {
         for($i = 0; $i < $element->attributes->count(); $i++){
             $attribute = $element->attributes->item($i);
-
-
             // 1. try embrace
             $attribute->nodeValue = htmlspecialchars($this->readDelimiter($attribute->nodeValue));
             // 2. try custom attributes
             $this->applyCustomAttributes($attribute);
         }
     }
-    function applyCustomAttributes(\DOMAttr &$attribute): void
+
+    /**
+     * @param DOMAttr $attribute
+     * @return void
+     */
+    function applyCustomAttributes(DOMAttr &$attribute): void
     {
-        if(isset(self::$customAttributes[$attribute->name])){
-            self::$customAttributes[$attribute->name]($attribute, $this->contextData);
+        $attributes = Constants::getCustomAttributes();
+        if(isset($attributes[$attribute->name])){
+            $attributes[$attribute->name]($attribute, $this->contextData);
         }
 
     }
+
+    /**
+     * @param string $string
+     * @return string
+     */
     function readDelimiter(string $string): string
     {
-        $delimiter = self::$delimiter;
+        $delimiter = Constants::getDelimiter();
         $pattern = "/{$delimiter[0]}([^{$delimiter[1]}]+){$delimiter[1]}/";
 
-        $found = preg_match_all($pattern, $string, $matches, PREG_SET_ORDER);
-        if($found){
-            foreach ($matches as $pair){
-                if(isset($this->contextData[trim($pair[1])])){
-                    $string = str_replace($pair[0], $this->contextData[trim($pair[1])], $string);
-                }
-            }
+        $found = @preg_match_all($pattern, $string, $matches, PREG_SET_ORDER);
 
+        if($found){
+            $string = $this->replaceVariables($matches, $string);
         }
         return $string;
     }
+
     /**
-     * @param      $array
-     * @param string|null $parentKey
-     *
-     * @return array
+     * @param array $matches
+     * @param string $content
+     * @return string
      */
-    function flattenArray($array, string $parentKey = null): array
+    private function replaceVariables(array $matches, string $content): string
     {
-        $answer = [];
-        foreach ($array as $key => $value) {
-            if ($parentKey) {
-                $key = $parentKey . '.' . $key;
-            }
-            if (!is_array($value)) {
-                $answer[$key] = $value;
-            } else {
-                $answer[$key] = 'Array';
-                $answer[$key.'.length'] = sizeof($value);
-                $answer = array_merge($answer, self::flattenArray($value, $key));
+        foreach ($matches as $pair){
+            if(isset($this->flatData[trim($pair[1])])){
+                $content = str_replace($pair[0], $this->flatData[trim($pair[1])], $content);
             }
         }
-        return $answer;
+        return $content;
     }
 
 }
