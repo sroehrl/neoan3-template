@@ -200,7 +200,7 @@ class Interpreter
         for($i = 0; $i < $element->attributes->count(); $i++){
             $attribute = $element->attributes->item($i);
             // 1. try embrace
-            $attribute->nodeValue = htmlspecialchars($this->readDelimiter($attribute->nodeValue));
+            $attribute->nodeValue = $this->readDelimiter($attribute->nodeValue);
             // 2. try custom attributes
             $this->applyCustomAttributes($attribute);
         }
@@ -226,11 +226,12 @@ class Interpreter
     function readDelimiter(string $string): string
     {
         $delimiter = Constants::getDelimiter();
-        $pattern = "/{$delimiter[0]}([^{$delimiter[1]}]+){$delimiter[1]}/";
+        $pattern = "/({$delimiter[0]}|{$delimiter[2]})([^{$delimiter[1]}]+)({$delimiter[1]}|{$delimiter[3]})/";
 
         $found = @preg_match_all($pattern, $string, $matches, PREG_SET_ORDER);
 
         if($found){
+
             $string = $this->replaceVariables($matches, $string);
 
         }
@@ -245,8 +246,8 @@ class Interpreter
     private function replaceVariables(array $matches, string $content): string
     {
         foreach ($matches as $pair){
-            if(array_key_exists(trim($pair[1]), $this->flatData)){
-                $content = str_replace($pair[0], $this->flatData[trim($pair[1])], $content);
+            if(array_key_exists(trim($pair[2]), $this->flatData)){
+                $content = str_replace($pair[0], $this->flatData[trim($pair[2])], $content);
             }
         }
         return $content;

@@ -5,7 +5,7 @@ namespace Neoan3\Apps\Template\Attributes;
 use Neoan3\Apps\Template\Constants;
 use Neoan3\Apps\Template\Interpreter;
 
-class NFor
+class NFor implements DomAttribute
 {
     private array $contextData;
 
