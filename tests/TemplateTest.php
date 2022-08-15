@@ -1,20 +1,20 @@
 <?php
 
 
-namespace Neoan3\Apps;
+namespace Neoan3\Apps\Tests;
 
+use Neoan3\Apps\Template\Constants;
+use Neoan3\Apps\Template\Template;
 use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
 {
 
-    static function setUpBeforeClass(): void
-    {
-        define('path', dirname(__FILE__));
-    }
+
     public function setUp(): void
     {
-        TemplateFunctions::setDelimiter('{{','}}');
+        Constants::setDelimiter('{{','}}');
+        Constants::setPath(dirname(__FILE__));
     }
 
     public function testEmbrace()
@@ -50,22 +50,17 @@ class TemplateTest extends TestCase
             'two.0' => 'item1',
             'two.1' => 'item2'
         ];
-        $this->assertSame($shouldBe, Template::flattenArray($testArray));
+        $this->assertSame($shouldBe, Constants::flattenArray($testArray));
     }
 
     public function testTEmbrace()
     {
         $str = 'any <t>how</t>';
         $sub = ['how' => 'test'];
-        $this->assertSame('any test', Template::tEmbrace($str, $sub));
+        Constants::setDelimiter('<t>','</t>');
+        $this->assertSame('any <t>test</t>', Template::embrace($str, $sub));
     }
 
-    public function testHardEmbrace()
-    {
-        $str = 'any [[how]]';
-        $sub = ['how' => 'test'];
-        $this->assertSame('any test', Template::hardEmbrace($str, $sub));
-    }
 
     public function testEmbraceFromFile()
     {
@@ -93,7 +88,10 @@ class TemplateTest extends TestCase
 
     public function testNestedCondition()
     {
-        $array = ['deeps' => [['number' => 1], ['number' => 2]]];
+        $array = ['deeps' => [
+            ['number' => 3],
+            ['number' => 2]
+        ]];
         $t = Template::embraceFromFile('nestedCondition.html', $array);
         $this->assertStringContainsString('exists', $t);
         $this->assertStringNotContainsString('not', $t);
@@ -116,7 +114,7 @@ class TemplateTest extends TestCase
         $array = [
             'some' => 'value'
         ];
-        TemplateFunctions::registerClosure('myFunc',function($x){
+        Constants::addCustomFunction('myFunc',function($x){
             return strtoupper($x);
         });
         $t = Template::embraceFromFile('callback.html', $array);
@@ -130,7 +128,7 @@ class TemplateTest extends TestCase
             'items' => ['one', 'two'],
             'som' => 'value'
         ];
-        TemplateFunctions::registerClosure('myFunc',function($x) {
+        Constants::addCustomFunction('myFunc',function($x) {
             return $x . '-shouldnt';
         });
         $t = Template::embraceFromFile('callback.html', $array);
@@ -144,10 +142,10 @@ class TemplateTest extends TestCase
             'items' => ['one', 'two'],
             'some' => 'value'
         ];
-        TemplateFunctions::registerClosure('deepFunc',function($input){
+        Constants::addCustomFunction('deepFunc',function($input){
             return $input . '!';
         });
-        TemplateFunctions::registerClosure('myFunc',function ($x) {
+        Constants::addCustomFunction('myFunc',function ($x) {
             return strtoupper($x);
         });
 
@@ -157,25 +155,26 @@ class TemplateTest extends TestCase
 
     }
 
-    public function testCustomDelimiter()
-    {
-        $array = ['test' => '[value]'];
-        TemplateFunctions::setDelimiter('<!--','-->');
-        $t = Template::embraceFromFile('callback.html', $array);
-        $this->assertStringContainsString('[value]', $t);
-    }
     public function testEvaluateTypedConditionNull()
     {
         $array = ['test' => null];
         $t = Template::embrace('<p n-if="test === false">some</p>', $array);
-        $this->assertStringContainsString('p>some', $t);
+        $this->assertStringNotContainsString('p>some', $t);
     }
     public function testUtf8()
     {
         $array = ['one'=> 'über','keß'=>'plunder'];
+        Constants::setEncoding('utf-8');
         $t = Template::embraceFromFile('utf8.html', $array);
         $this->assertStringContainsString('show', $t);
         $t = Template::embraceFromFile('utf8.html', $array);
         $this->assertStringContainsString('plunder', $t);
+    }
+    public function testEmptyFunction()
+    {
+        Constants::addCustomFunction('test', fn() => 'here');
+        $html = '<p n-if="test()">{{test()}}</p>';
+        $t = Template::embrace($html, []);
+        $this->assertStringContainsString('here',$t);
     }
 }

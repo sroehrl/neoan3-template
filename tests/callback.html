@@ -7,7 +7,7 @@
 <body>
     <p>{{myFunc(some)}}</p>
     <ul>
-        <li n-if="'myFunc(some)' == 'VALUE'">show me</li>
+        <li n-if="myFunc(some) == 'VALUE'">show me</li>
     </ul>
     <ul>
         <li n-for="items as item">{{deepFunc(item)}}</li>

@@ -8,8 +8,8 @@
 <div>
     <h2>nested if</h2>
     <p n-for="deeps as deep">
-        <span n-if="deep.number > 1">exists</span>
-        <span n-if="deep.number < 1">not</span>
+        <span n-if="deep.number > 1">exists in iteration 1 and 2</span>
+        <span n-if="deep.number === 3">exists in iteration 1</span>
     </p>
 </div>
 </body>
