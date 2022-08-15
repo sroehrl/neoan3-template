@@ -80,7 +80,7 @@ class Interpreter
      */
     private function ensureEncoding(string $html): string
     {
-        if(!$this->skipEncoding && !strpos($html, '<!DOCTYPE html>')){
+        if(!$this->skipEncoding && !str_contains($html, '<!DOCTYPE html>')){
             $partial = $this->getFragmentCompletions();
             $this->isFragment = true;
             $html = $partial[0] .$html . $partial[1];
@@ -215,10 +215,7 @@ class Interpreter
 
         if($found){
             $string = $this->replaceVariables($matches, $string);
-            // is this a fragment?
-            if($string !== strip_tags($string)){
 
-            }
         }
         return $string;
     }
@@ -231,7 +228,7 @@ class Interpreter
     private function replaceVariables(array $matches, string $content): string
     {
         foreach ($matches as $pair){
-            if(isset($this->flatData[trim($pair[1])])){
+            if(array_key_exists(trim($pair[1]), $this->flatData)){
                 $content = str_replace($pair[0], $this->flatData[trim($pair[1])], $content);
             }
         }

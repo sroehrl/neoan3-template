@@ -33,6 +33,7 @@ echo Template::embrace('<h1>{{test}}</h1>',['test'=>'Hello World']);
 - [Custom Delimiter](#custom-delimiter)
 - [Custom Attributes](#custom-attributes)
 - [OOP](#oop)
+- [Tips](#tips)
 
 
 ## Templating
@@ -283,7 +284,7 @@ echo Template::embraceFromFile('/main.html', $translations)
 So far, we have used a purely static approach. However, the "Template" methods are merely facades resulting in the initialization 
 of the Interpreter. If you need more control over what is happening, or it better fits your situation, you are welcome to use it directly:
 
-````php 
+```php 
 $html = file_get_contents(__DIR__ . '/test.html);
 
 $contextData = [
@@ -304,4 +305,68 @@ $templating->parse();
 
 echo $templating->asHtml();
 
+```
+
+## Tips
+
+There are a few things that are logical, but not obvious:
+
+### Parents on loops
+
+Due to processing in hierarchy, many internal parsing operations can cause race-conditions.
+Imagine the following HTML:
+```html
+// ['items' => ['one','two'], 'name' => 'John']
+<div>
+    <p n-for="items as item">{{item}} {{name}}</p>
+    <p>{{name}}</p>
+</div>
+```
+In this scenario, the parser would first hit the attribute `n-for`
+and add p-tags to the parent node (here div). `n-for` now takes control of this parent and
+interprets the children. As the context gets reevaluated in every loop, but the second p-tag is not iterated,
+the resulting output would be:
+```html
+<div>
+    <p>{{name}}</p>
+    <p>one John</p>
+    <p>two John</p>
+</div>
+```
+It is therefore recommended to use **one** distinct parent when using attribute methods:
+```html
+// ['items' => ['one','two'], 'name' => 'John']
+<div>
+    <p n-for="items as item">{{item}} {{name}}</p>
+</div>
+<div>
+    <p>{{name}}</p>
+</div>
+```
+
+### Flat array properties
+
+The interpreter "flattens" the given context-array
+in order to allow for the dot-notation. In this process generic values are added:
+```html
+// ['items' => ['one','two'], 'deepAssoc' => ['name' => 'Tim']]
+<p>{{items}}</p>
+<p>{{items.0}}</p>
+<p>{{items.length}}</p>
+<p>{{deepAssoc.name}}</p>
+```
+output:
+```html
+<p>Array</p>
+<p>one</p>
+<p>2</p>
+<p>Tim</p>
+```
+If needed, you can use this in logic:
+```html
+<div n-if="items == 'Array'">
+    <ul>
+        <li n-for="items as item">{{item}}</li>
+    </ul>
+</div>
 ```
