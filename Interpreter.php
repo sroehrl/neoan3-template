@@ -117,14 +117,22 @@ class Interpreter
                     $this->handleAttributes($child);
                 }
                 // IS delimiter?
-                if(Constants::delimiterIsTag() && $child->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($child->textContent)])){
-                    $child->nodeValue = $this->flatData[trim($child->textContent)];
-                }
+                $this->handleDelimiterIsTag($child);
+
             }
             if($child instanceof DOMText && trim($child->nodeValue) !== ''){
                 $this->handleTextNode($child);
             }
-            $this->stepThrough($child->childNodes);
+            if($child->hasChildNodes()){
+                $this->stepThrough($child->childNodes);
+            }
+        }
+    }
+
+    function handleDelimiterIsTag(DOMElement $node): void
+    {
+        if(Constants::delimiterIsTag() && $node->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($node->textContent)])){
+            $node->nodeValue = $this->flatData[trim($node->textContent)];
         }
     }
 
@@ -137,17 +145,22 @@ class Interpreter
         // readDelimiter
         $givenValue = $this->readDelimiter($node->nodeValue);
         if($givenValue !== strip_tags($givenValue)){
-            $subDoc = new Interpreter($givenValue, $this->contextData);
-            $fragment = $this->doc->createDocumentFragment();
-            $fragment->appendXML($subDoc->asHtml());
-            $node->nodeValue = '';
-            $node->parentNode->appendChild($fragment);
+            $this->appendAsFragment($node, $givenValue);
         } else {
             $node->nodeValue = $this->readDelimiter($node->nodeValue);
             // handle functions
             $this->handleFunctions($node);
         }
 
+    }
+
+    private function appendAsFragment(DOMText $parentNode, string $htmlPartial): void
+    {
+        $subDoc = new Interpreter($htmlPartial, $this->contextData);
+        $fragment = $this->doc->createDocumentFragment();
+        $fragment->appendXML($subDoc->asHtml());
+        $parentNode->nodeValue = '';
+        $parentNode->parentNode->appendChild($fragment);
     }
 
     /**
@@ -161,14 +174,18 @@ class Interpreter
             $pattern = "/({$delimiter[0]}.*)*$function\(([^)]*)\)(.*{$delimiter[1]})*/";
             $hit = preg_match_all($pattern, $element->nodeValue, $matches, PREG_SET_ORDER);
             if($hit){
-                foreach($matches as $match){
-                    if(!empty($match[2]) && array_key_exists($match[2],$this->flatData)){
-                        $element->nodeValue = str_replace($match[0], $closure($this->flatData[$match[2]]), $element->nodeValue);
-                    } elseif (empty($match[2])){
-                        $element->nodeValue = str_replace($match[0], $closure(), $element->nodeValue);
-                    }
-                }
+                $this->executeFunction($closure, $matches, $element);
+            }
+        }
+    }
 
+    private function executeFunction(callable $callable, $matches, $element): void
+    {
+        foreach($matches as $match){
+            if(!empty($match[2]) && array_key_exists($match[2],$this->flatData)){
+                $element->nodeValue = str_replace($match[0], $callable($this->flatData[$match[2]]), $element->nodeValue);
+            } elseif (empty($match[2])){
+                $element->nodeValue = str_replace($match[0], $callable(), $element->nodeValue);
             }
         }
     }
