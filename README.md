@@ -5,6 +5,9 @@ PHP template engine
 [![Maintainability](https://api.codeclimate.com/v1/badges/76b09924300375c4d79a/maintainability)](https://codeclimate.com/github/sroehrl/neoan3-template/maintainability)
 [![Build Status](https://travis-ci.org/sroehrl/neoan3-template.svg?branch=master)](https://travis-ci.org/sroehrl/neoan3-template)
 
+> As of version 2, we dropped PHP 7.4 support. 
+> You require at least PHP 8.0 or use v1.2.0 of this package.
+
 ## Installation / Quick start
 
 `composer require neoan3-apps/template`
