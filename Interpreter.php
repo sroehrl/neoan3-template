@@ -80,7 +80,7 @@ class Interpreter
      */
     private function ensureEncoding(string $html): string
     {
-        if(!$this->skipEncoding && !str_contains($html, '<!DOCTYPE html>')){
+        if(!$this->skipEncoding && !strpos($html, '<!DOCTYPE html>')){
             $partial = $this->getFragmentCompletions();
             $this->isFragment = true;
             $html = $partial[0] .$html . $partial[1];

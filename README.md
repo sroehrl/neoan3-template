@@ -21,13 +21,16 @@ Constants::setPath(__DIR__ . '/templates');
 echo Template::embrace('<h1>{{test}}</h1>',['test'=>'Hello World']);
 ```
 
+## Contents
+
 - [Templating](#templating)
 - [Iterations](#iterations-n-for)
 - [Conditions](#conditions-n-if)
 - [Custom Functions](#custom-functions)
 - [Custom Delimiter](#custom-delimiter)
 - [Custom Attributes](#custom-attributes)
-- [OOP]
+- [OOP](#oop)
+
 
 ## Templating
 **neoan3-template** is not a full blown template engine, but rather what a template engine should be: 
