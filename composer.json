@@ -1,7 +1,7 @@
 {
     "name": "neoan3-apps/template",
     "description": "PHP DOMDocument-based minimal template engine",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "license": "MIT",
     "autoload": {
         "psr-4": {
