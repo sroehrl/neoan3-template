@@ -55,16 +55,11 @@ class NFor
     }
     private function sequentialContext(string $key, array $value): void
     {
-        $finalInner = [];
-        foreach ($value as $existingKey => $existingValue){
-            $finalInner = [
-                $existingKey => $existingValue
-            ];
-            if(count($this->currentDeclaration)>1){
-                $finalInner[$this->currentDeclaration[0]] = $key;
-            }
+
+        if(count($this->currentDeclaration)>1){
+            $this->contextData[$this->currentDeclaration[0]] = $key;
         }
-        $this->contextData[end($this->currentDeclaration)] = $finalInner;
+        $this->contextData[end($this->currentDeclaration)] = $value;
     }
     private function assocContext(string $key, mixed $value):void
     {
@@ -88,7 +83,6 @@ class NFor
 
             for ($i = 0; $i < $iterations; $i++) {
                 $this->generateCurrentContext($i);
-
                 $newDoc = new Interpreter($attr->ownerDocument->saveHTML($clone), $this->contextData, true);
                 $html = $newDoc->asHtml();
                 if(!empty(trim($html))){

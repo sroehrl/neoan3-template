@@ -115,7 +115,6 @@ class Interpreter
                 // attributes?
                 if($child->hasAttributes()){
                     $this->handleAttributes($child);
-                    // attribute functions?
                 }
                 // IS delimiter?
                 if(Constants::delimiterIsTag() && $child->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($child->textContent)])){
