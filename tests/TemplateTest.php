@@ -177,4 +177,11 @@ class TemplateTest extends TestCase
         $t = Template::embrace($html, []);
         $this->assertStringContainsString('here',$t);
     }
+    public function testAppendFragment()
+    {
+        $html = '<div>{{content}}</div>';
+        $content = ['content' => '<p>Nested element</p>'];
+        $t = Template::embrace($html, $content);
+        $this->assertStringContainsString('Nested',$t);
+    }
 }

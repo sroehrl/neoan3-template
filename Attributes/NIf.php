@@ -7,7 +7,7 @@ use Exception;
 use Neoan3\Apps\Template\Constants;
 use ParseError;
 
-class NIf
+class NIf implements DomAttribute
 {
     private bool $hit = false;
     function __construct()

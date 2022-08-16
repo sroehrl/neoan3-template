@@ -68,7 +68,7 @@ class Constants
      */
     public static function getDelimiter(): array
     {
-        return self::$delimiter;
+        return [...self::$delimiter, urlencode(self::$delimiter[0]), urlencode(self::$delimiter[1])];
     }
 
     public static function delimiterIsTag(): bool
