@@ -186,6 +186,8 @@ class Interpreter
                 $element->nodeValue = str_replace($match[0], $callable($this->flatData[$match[2]]), $element->nodeValue);
             } elseif (empty($match[2])){
                 $element->nodeValue = str_replace($match[0], $callable(), $element->nodeValue);
+            } else {
+                $element->nodeValue = str_replace($match[0], $callable(...explode(',',$match[2])), $element->nodeValue);
             }
         }
     }
