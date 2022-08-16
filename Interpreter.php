@@ -171,7 +171,7 @@ class Interpreter
     {
         foreach (Constants::getCustomFunctions() as $function => $closure){
             $delimiter = Constants::getDelimiter();
-            $pattern = "/({$delimiter[0]}.*)*$function\(([^)]*)\)(.*{$delimiter[1]})*/";
+            $pattern = "/({$delimiter[0]}[^$]*)$function\(([^)]*)\)(.*{$delimiter[1]})*/";
             $hit = preg_match_all($pattern, $element->nodeValue, $matches, PREG_SET_ORDER);
             if($hit){
                 $this->executeFunction($closure, $matches, $element);
