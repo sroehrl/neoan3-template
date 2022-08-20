@@ -227,9 +227,9 @@ class Interpreter
      */
     function readDelimiter(string $string): string
     {
-        $delimiter = Constants::getDelimiter();
-        $pattern = "/({$delimiter[0]}|{$delimiter[2]})([^{$delimiter[1]}]+)({$delimiter[1]}|{$delimiter[3]})/";
 
+        $delimiter = Constants::getDelimiter();
+        $pattern = "/({$delimiter[0]}|{$delimiter[2]})([^{$delimiter[1]}|{$delimiter[0]}]+)({$delimiter[1]}|{$delimiter[3]})/";
         $found = @preg_match_all($pattern, $string, $matches, PREG_SET_ORDER);
 
         if($found){
