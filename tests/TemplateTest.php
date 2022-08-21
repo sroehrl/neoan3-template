@@ -184,4 +184,10 @@ class TemplateTest extends TestCase
         $t = Template::embrace($html, $content);
         $this->assertStringContainsString('Nested',$t);
     }
+    public function testSubstitutions()
+    {
+        $html = '<h1>{{test [%here%](%sub%)}}</h1>';
+        $t = Template::embrace($html, ['test [%here%]'=>'adam[%here%]']);
+        $this->assertSame('<h1>adamsub</h1>', $t);
+    }
 }

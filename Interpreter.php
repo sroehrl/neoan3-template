@@ -249,16 +249,7 @@ class Interpreter
     {
         foreach ($matches as $pair){
             $lookFor = trim($pair[2]);
-            $sanitized = preg_match_all('/\[%([^%\]]+)%\]\(%(.+?)(?=%\))%\)/', $lookFor, $preRendered, PREG_SET_ORDER);
-            $substitutes = [];
-            if($sanitized){
-                foreach ($preRendered as $hit){
-                    $lookFor = str_replace($hit[0],"[%{$hit[1]}%]", $lookFor);
-                    if(isset($hit[2])){
-                        $substitutes[] = ["[%{$hit[1]}%]", $hit[2]];
-                    }
-                }
-            }
+            $substitutes = $this->handleSubstitutions($lookFor);
             if(array_key_exists($lookFor, $this->flatData)){
                 $content = str_replace($pair[0], $this->flatData[$lookFor], $content);
                 foreach ($substitutes as $substitute){
@@ -267,6 +258,21 @@ class Interpreter
             }
         }
         return $content;
+    }
+
+    private function handleSubstitutions(string &$lookFor): array
+    {
+        $sanitized = preg_match_all('/\[%([^%\]]+)%\]\(%(.+?)(?=%\))%\)/', $lookFor, $preRendered, PREG_SET_ORDER);
+        $substitutes = [];
+        if($sanitized){
+            foreach ($preRendered as $hit){
+                $lookFor = str_replace($hit[0],"[%{$hit[1]}%]", $lookFor);
+                if(isset($hit[2])){
+                    $substitutes[] = ["[%{$hit[1]}%]", $hit[2]];
+                }
+            }
+        }
+        return $substitutes;
     }
 
 }
