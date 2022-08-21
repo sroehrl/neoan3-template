@@ -159,12 +159,33 @@ Output:
 
 ```
 
+You can even use substitutions like this (as used in [php-i18n-translate](https://github.com/sroehrl/php-i18n-translate#readme)):
+
+```html
+<h1>The current rating is {{rating [%format](% {{% round(percentage) %)}}</h1>
+```
+
+```php
+$data = [
+ 'percentage' => 8,332,
+ 'rating [%format%]'
+];
+\Neoan3\Apps\Template\Constants::addCustomFunction('round', function ($input){
+    return round((float)$input) . '%';
+});
+echo \Neoan3\Apps\Template::embraceFromFile('/aboveHtml.html', $data);
+```
+Output:
+
+```html
+<h1>The current rating is 8%</h1>
+```
 ## Custom delimiter
 
 There is a reason why curly braces are used: You can leverage the fact that some values are only potentially filled by the backend and 
 addressed in the front-end if the value does not exist in your data (yet).
 However, there are also cases where you want to specifically avoid having your front-end 
-framework picking up unfilled variables or you have special parsing needs to work with various files.
+framework picking up unfilled variables, or you have special parsing needs to work with various files.
 Therefore, you can use custom identifiers by providing your desired markup to **embrace** or **embraceFromFile**.
 
 Example:
@@ -197,7 +218,7 @@ Output:
 use \Neoan3\Apps\Template\Constants;
 use \Neoan3\Apps\Template\Template;
 
-Constants::setDelimiter('<translation>','</translation>');
+Constants::setDelimiter('<translation>','<\/translation>');
 
 $esperanto = [
     'hello' => 'saluton'
@@ -217,7 +238,7 @@ echo Template::embrace($translated, $user);
 Output:
 
 ```html
-<h1><translation>saluton</translation> Sammy</h1>
+<h1><translation>salutaton</translation> Sammy</h1>
 ```
 
 ## Custom Attributes
