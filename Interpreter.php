@@ -131,8 +131,9 @@ class Interpreter
 
     function handleDelimiterIsTag(DOMElement $node): void
     {
-        if(Constants::delimiterIsTag() && $node->tagName === substr(Constants::getDelimiter()[0],1,-1) && isset($this->flatData[trim($node->textContent)])){
-            $node->nodeValue = $this->flatData[trim($node->textContent)];
+        if(Constants::delimiterIsTag() && $node->tagName === substr(Constants::getDelimiter()[0],1,-1)){
+            // fake $matches
+            $node->nodeValue = $this->replaceVariables([[$node->textContent,$node->textContent,$node->textContent]], $node->textContent);
         }
     }
 
@@ -171,9 +172,10 @@ class Interpreter
     {
         foreach (Constants::getCustomFunctions() as $function => $closure){
             $delimiter = Constants::getDelimiter();
-            $pattern = "/({$delimiter[0]}[^$]*)$function\(([^)]*)\)(.*{$delimiter[1]})*/";
+            $pattern = "/$delimiter[0]\s*$function\(([^)]*)\)\s*{$delimiter[1]}/";
             $hit = preg_match_all($pattern, $element->nodeValue, $matches, PREG_SET_ORDER);
             if($hit){
+
                 $this->executeFunction($closure, $matches, $element);
             }
         }
@@ -182,12 +184,12 @@ class Interpreter
     private function executeFunction(callable $callable, $matches, $element): void
     {
         foreach($matches as $match){
-            if(!empty($match[2]) && array_key_exists($match[2],$this->flatData)){
-                $element->nodeValue = str_replace($match[0], $callable($this->flatData[$match[2]]), $element->nodeValue);
-            } elseif (empty($match[2])){
+            if(!empty($match[1]) && array_key_exists($match[1],$this->flatData)){
+                $element->nodeValue = str_replace($match[0], $callable($this->flatData[$match[1]]), $element->nodeValue);
+            } elseif (empty($match[1])){
                 $element->nodeValue = str_replace($match[0], $callable(), $element->nodeValue);
             } else {
-                $element->nodeValue = str_replace($match[0], $callable(...explode(',',$match[2])), $element->nodeValue);
+                $element->nodeValue = str_replace($match[0], $callable(...explode(',',$match[1])), $element->nodeValue);
             }
         }
     }
@@ -233,9 +235,7 @@ class Interpreter
         $found = @preg_match_all($pattern, $string, $matches, PREG_SET_ORDER);
 
         if($found){
-
             $string = $this->replaceVariables($matches, $string);
-
         }
         return $string;
     }
@@ -248,8 +248,22 @@ class Interpreter
     private function replaceVariables(array $matches, string $content): string
     {
         foreach ($matches as $pair){
-            if(array_key_exists(trim($pair[2]), $this->flatData)){
-                $content = str_replace($pair[0], $this->flatData[trim($pair[2])], $content);
+            $lookFor = trim($pair[2]);
+            $sanitized = preg_match_all('/\[%([^%\]]+)%\]\(%(.+?)(?=%\))%\)/', $lookFor, $preRendered, PREG_SET_ORDER);
+            $substitutes = [];
+            if($sanitized){
+                foreach ($preRendered as $hit){
+                    $lookFor = str_replace($hit[0],"[%{$hit[1]}%]", $lookFor);
+                    if(isset($hit[2])){
+                        $substitutes[] = ["[%{$hit[1]}%]", $hit[2]];
+                    }
+                }
+            }
+            if(array_key_exists($lookFor, $this->flatData)){
+                $content = str_replace($pair[0], $this->flatData[$lookFor], $content);
+                foreach ($substitutes as $substitute){
+                    $content = str_replace($substitute[0], $substitute[1], $content);
+                }
             }
         }
         return $content;
