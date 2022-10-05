@@ -158,8 +158,9 @@ class Interpreter
     private function appendAsFragment(DOMText $parentNode, string $htmlPartial): void
     {
         $fresh = new \DOMDocument();
-        @$fresh->loadHTML( $htmlPartial, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-        $imported = $parentNode->ownerDocument->importNode($fresh->documentElement, true);
+        $partial = $this->getFragmentCompletions();
+        @$fresh->loadHTML($partial[0] . $htmlPartial . $partial[1], LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $imported = $parentNode->ownerDocument->importNode($fresh->documentElement->childNodes->item(1)->firstChild, true);
         $parentNode->nodeValue = '';
         $parentNode->parentNode->appendChild($imported);
     }
