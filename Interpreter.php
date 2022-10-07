@@ -205,7 +205,7 @@ class Interpreter
         for($i = 0; $i < $element->attributes->count(); $i++){
             $attribute = $element->attributes->item($i);
             // 1. try embrace
-            $attribute->nodeValue = $this->readDelimiter($attribute->nodeValue);
+            $attribute->nodeValue = htmlspecialchars($this->readDelimiter($attribute->nodeValue));
             // 2. try custom attributes
             $this->applyCustomAttributes($attribute);
         }
