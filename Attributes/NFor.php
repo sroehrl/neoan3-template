@@ -87,7 +87,7 @@ class NFor implements DomAttribute
                 $html = $newDoc->asHtml();
                 if(!empty(trim($html))){
                     $fresh = new \DOMDocument();
-                    $fresh->loadHTML( $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                    @$fresh->loadHTML( $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
                     $imported = $attr->ownerDocument->importNode($fresh->documentElement, true);
                     $attr->parentNode->parentNode->appendChild($imported);
                 }
