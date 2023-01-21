@@ -40,7 +40,10 @@ class NFor implements DomAttribute
 
     private function generateCurrentContext(int $iterator):void
     {
-        $newContextCandidate = $this->contextData[$this->currentParentKey];
+        $newContextCandidate = [];
+        foreach (explode('.', $this->currentParentKey) as $i => $contextKey){
+            $newContextCandidate = $i === 0 ? $this->contextData[$contextKey] : $newContextCandidate[$contextKey];
+        }
         $key = array_keys($newContextCandidate)[$iterator];
 
         if(!is_numeric($key)){
