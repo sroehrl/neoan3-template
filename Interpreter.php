@@ -252,7 +252,7 @@ class Interpreter
             $lookFor = trim($pair[2]);
             $substitutes = $this->handleSubstitutions($lookFor);
             if(array_key_exists($lookFor, $this->flatData)){
-                $content = str_replace($pair[0], $this->flatData[$lookFor], $content);
+                $content = str_replace($pair[0], $this->flatData[$lookFor] ?? '', $content);
                 foreach ($substitutes as $substitute){
                     $content = str_replace($substitute[0], $substitute[1], $content);
                 }
